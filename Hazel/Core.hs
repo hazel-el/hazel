@@ -18,6 +18,8 @@ module Hazel.Core(
     TBox
 ) where
 
+-- import Data.Set
+
 
 -- Datatypes --
 

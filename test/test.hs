@@ -1,4 +1,6 @@
 import Hazel.Core
+import Hazel.Completion
+-- import Data.Set
 
 role = Role "hasChild"
 top = Top
@@ -7,6 +9,8 @@ conjunction = top `And` name
 existential = Exists role name
 gci = Subclass existential name
 tbox = [gci, Subclass top conjunction]
+gci2 = Subclass (And name existential) conjunction
+
 
 main = do
     putStrLn $ show role
@@ -16,3 +20,5 @@ main = do
     putStrLn $ show existential
     putStrLn $ show gci
     putStrLn $ show tbox
+    putStrLn $ show gci2
+    putStrLn $ show $ normalizeGCI gci2
