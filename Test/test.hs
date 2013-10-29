@@ -8,7 +8,7 @@ name = Name "Person" True
 conjunction = top `And` name
 existential = Exists role name
 gci = Subclass existential name
-tbox = [gci, Subclass top conjunction]
+tbox = tBox_from_list [gci, Subclass top conjunction]
 gci2 = Subclass (And name existential) name
 gci2b = Subclass (And name conjunction) name
 gci3 = Subclass (Exists role existential) name
@@ -21,7 +21,7 @@ gci5c = Subclass conjunction existential
 gci5d = Subclass conjunction conjunction
 gci6 = Subclass top (And name top)
 
-
+show_names (TBox gs sc sr) = "(" ++ show sc ++ ", " ++ show sr ++ ")"
 
 main = do
     putStrLn $ show role
@@ -53,3 +53,4 @@ main = do
     putStrLn $ show $ normalizeGCI gci5d
     putStrLn $ show gci6
     putStrLn $ show $ normalizeGCI gci6
+    putStrLn $ show_names $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
