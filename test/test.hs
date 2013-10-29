@@ -4,12 +4,23 @@ import Hazel.Completion
 
 role = Role "hasChild"
 top = Top
-name = Name "Person"
+name = Name "Person" True
 conjunction = top `And` name
 existential = Exists role name
 gci = Subclass existential name
 tbox = [gci, Subclass top conjunction]
-gci2 = Subclass (And name existential) conjunction
+gci2 = Subclass (And name existential) name
+gci2b = Subclass (And name conjunction) name
+gci3 = Subclass (Exists role existential) name
+gci3b = Subclass (Exists role conjunction) name
+gci4 = Subclass name (Exists role existential)
+gci4b = Subclass name (Exists role conjunction)
+gci5 = Subclass existential conjunction
+gci5b = Subclass existential existential
+gci5c = Subclass conjunction existential
+gci5d = Subclass conjunction conjunction
+gci6 = Subclass top (And name top)
+
 
 
 main = do
@@ -22,3 +33,23 @@ main = do
     putStrLn $ show tbox
     putStrLn $ show gci2
     putStrLn $ show $ normalizeGCI gci2
+    putStrLn $ show gci2b
+    putStrLn $ show $ normalizeGCI gci2b
+    putStrLn $ show gci3
+    putStrLn $ show $ normalizeGCI gci3
+    putStrLn $ show gci3b
+    putStrLn $ show $ normalizeGCI gci3b
+    putStrLn $ show gci4
+    putStrLn $ show $ normalizeGCI gci4
+    putStrLn $ show gci4b
+    putStrLn $ show $ normalizeGCI gci4b
+    putStrLn $ show gci5
+    putStrLn $ show $ normalizeGCI gci5
+    putStrLn $ show gci5b
+    putStrLn $ show $ normalizeGCI gci5b
+    putStrLn $ show gci5c
+    putStrLn $ show $ normalizeGCI gci5c
+    putStrLn $ show gci5d
+    putStrLn $ show $ normalizeGCI gci5d
+    putStrLn $ show gci6
+    putStrLn $ show $ normalizeGCI gci6
