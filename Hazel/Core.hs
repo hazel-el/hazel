@@ -18,6 +18,7 @@ module Hazel.Core(
     TBox
 ) where
 
+import Data.HashTable (hashString)
 -- import Data.Set
 
 
@@ -28,7 +29,7 @@ data Role =
 
 data Concept =
     Top |
-    Name String |
+    Name String Bool | -- Bool flag is true if it's not a dummy
     And Concept Concept |
     Exists Role Concept
 
@@ -39,7 +40,7 @@ type TBox =
     [GCI]
 
 
--- show functions defined according to Manchester OWL Syntax used by Protege: --
+-- show functions defined according to Manchester OWL Syntax used by Protege:
 
 instance Show Role where
     show (Role s) = s
@@ -48,8 +49,10 @@ instance Show Concept where
     show c = case c of
         Top ->
             "Thing"  
-        Name s ->
+        Name s True ->
             s
+        Name s False ->
+            show $ hashString s
         And c1 c2 ->
 	    "(" ++ (show c1) ++ " and " ++ (show c2) ++ ")"
         Exists r c1 ->
