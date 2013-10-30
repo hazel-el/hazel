@@ -1,0 +1,15 @@
+To Do
+=====
+
+- Normalisierung für TBoxen
+- Completion implementieren
+- Änderung der Datenstruktur der TBox:
+	* Signatur von TBox trennen (z.B. eigener Datentyp für Signatur)
+	* Dummy-Marker gehört nicht zum Konzept, sondern zum Reasoner
+	* Signaturextraktion geht nicht in die TBox
+- Reasoner:
+	* bekommt eigenen Signaturtyp: Paar aus Signatur und Dummyliste
+- Completiongraph:
+	* Datenstruktur diskutieren mit jemandem, der sich damit auskennt
+- Polymorphie einführen (Konzept wird eine Klasse, ELKonzept, OWL2ELKonzept,
+  ALCKonzept, etc. werden Instanzen)
