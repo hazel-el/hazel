@@ -1,5 +1,6 @@
 import Hazel.Core
 import Hazel.Completion
+import Hazel.CompletionGraph
 -- import Data.Set
 
 role = Role "hasChild"
@@ -21,9 +22,19 @@ gci5c = Subclass conjunction existential
 gci5d = Subclass conjunction conjunction
 gci6 = Subclass top (And name top)
 
+(CGraph s_init r_init) = init_graph
+
+gci_cr1 = Subclass top name
+(CGraph s_cr1 r_cr1, flag_cr1) = cr1 gci_cr1 init_graph top
+(CGraph t_cr1 q_cr1, glag_cr1) = cr1 gci_cr1 init_graph name
+
+gci_cr2 = Subclass conjunction (Name "Human" True)
+(CGraph s_cr2 r_cr2, flag_cr2) = cr2 gci_cr2 init_graph name
+
 show_names (TBox gs sc sr) = "(" ++ show sc ++ ", " ++ show sr ++ ")"
 
 main = do
+    putStrLn "\nTesting Show Functions"
     putStrLn $ show role
     putStrLn $ show top
     putStrLn $ show name
@@ -31,6 +42,7 @@ main = do
     putStrLn $ show existential
     putStrLn $ show gci
     putStrLn $ show tbox
+    putStrLn "\nTesting Normalization for GCIs"
     putStrLn $ show gci2
     putStrLn $ show $ normalizeGCI gci2
     putStrLn $ show gci2b
@@ -53,4 +65,26 @@ main = do
     putStrLn $ show $ normalizeGCI gci5d
     putStrLn $ show gci6
     putStrLn $ show $ normalizeGCI gci6
+    putStrLn "\n Testing Signature Computation"
     putStrLn $ show_names $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
+    putStrLn "\nTesting Completion Graph Initialization"
+    putStrLn $ show $ s_init (Name "Person" True)
+    putStrLn "\nTesting Completion Rules"
+    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Top, and init_graph"
+    putStrLn $ "New successor found: " ++ show flag_cr1
+    putStrLn $ "New successors of Top:"
+    putStrLn $ show $ s_cr1 Top
+    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Person, and init_graph"
+    putStrLn $ "New successor found: " ++ show glag_cr1
+    putStrLn $ "New successors of Person:"
+    putStrLn $ show $ t_cr1 name
+    putStrLn $ "New successors of Top:"
+    putStrLn $ show $ t_cr1 top
+    putStrLn $ "Applying CR2 to <" ++ show gci_cr2 ++ ">, Person, and init_graph"
+    putStrLn $ "New successor found: " ++ show flag_cr2
+    putStrLn $ "New successors of Person:"
+    putStrLn $ show $ s_cr2 name
+    putStrLn $ "New successors of Top:"
+    putStrLn $ show $ s_cr2 top
+    putStrLn $ "New successors of Dummy:"
+    putStrLn $ show $ s_cr2 (Name "Dummy" True)
