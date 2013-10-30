@@ -1,16 +1,21 @@
 -- TODO fill in header
 {- |
- - Module      :  Hazel.Completion
- - Description :  Provides reasoning according to completion algorithm
- - Copyright   :  (c) <Authors or Affiliations>
- - License     :  <license>
- -
- - Maintainer  :  <email>
- - Stability   :  experimental
- - Portability :  portable | non-portable (<reason>)
- -
- - <module description starting at first column>
- - -}
+* Module      :  Hazel.Normalize
+
+* Description :  Functions for reasoning according to completion algorithm
+
+* Copyright   :  (c) <Authors or Affiliations>
+
+* License     :  <license>
+
+* Maintainer  :  <email>
+
+* Stability   :  experimental
+
+* Portability :  portable | non-portable (<reason>)
+
+* <module description starting at first column>
+-}
 module Hazel.Completion
 where
 
@@ -18,7 +23,7 @@ import Hazel.Core
 
 
 data CGraph =
-    -- |   S mapping              R mapping
+    -- | Labelling function for nodes, and labelling function for edges
     CGraph (Concept -> [Concept]) (Role -> [CEdge])
         
 type CEdge = (Concept,Concept)
@@ -27,8 +32,12 @@ type CEdge = (Concept,Concept)
 
 -- Auxiliary functions
 
--- | Returns a function that is like f, except that x is mapped to yn
-except :: (Eq a) => (a -> b) -> a -> b -> (a -> b)
+-- | Returns a function that is like f, except one argument gets a new value
+except :: (Eq a) =>
+    (a -> b) -- ^ original function
+    -> a -- ^ argument whose function value should be replaced
+    -> b -- ^ new value
+    -> (a -> b)
 except f x yn =
     fn
   where
@@ -36,6 +45,8 @@ except f x yn =
         | o == x = yn
         | otherwise = f o
 
+init_graph :: CGraph
+-- ^ Initialization of the completion graph
 init_graph =
     CGraph s r
   where
