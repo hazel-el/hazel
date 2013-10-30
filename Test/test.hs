@@ -1,6 +1,6 @@
 import Hazel.Core
 import Hazel.Completion
-import Hazel.CompletionGraph
+import Hazel.Normalize
 -- import Data.Set
 
 role = Role "hasChild"
@@ -30,6 +30,12 @@ gci_cr1 = Subclass top name
 
 gci_cr2 = Subclass conjunction (Name "Human" True)
 (CGraph s_cr2 r_cr2, flag_cr2) = cr2 gci_cr2 init_graph name
+
+gci_cr3 = Subclass name existential
+(CGraph s_cr3 r_cr3, flag_cr3) = cr3 gci_cr3 init_graph name
+
+gci_cr4 = Subclass existential (Name "Father" True)
+(CGraph s_cr4 r_cr4, flag_cr4) = cr4 gci_cr4 (CGraph s_cr3 r_cr3) name name
 
 show_names (TBox gs sc sr) = "(" ++ show sc ++ ", " ++ show sr ++ ")"
 
@@ -67,6 +73,9 @@ main = do
     putStrLn $ show $ normalizeGCI gci6
     putStrLn "\n Testing Signature Computation"
     putStrLn $ show_names $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
+    putStrLn "\n Testing TBox normalization"
+    putStrLn $ show $ normalize [gci3b, gci5c]
+    putStrLn $ show $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
     putStrLn "\nTesting Completion Graph Initialization"
     putStrLn $ show $ s_init (Name "Person" True)
     putStrLn "\nTesting Completion Rules"
@@ -88,3 +97,15 @@ main = do
     putStrLn $ show $ s_cr2 top
     putStrLn $ "New successors of Dummy:"
     putStrLn $ show $ s_cr2 (Name "Dummy" True)
+    putStrLn $ "Applying CR3 to <" ++ show gci_cr3 ++ ">, Person, and init_graph"
+    putStrLn $ "New role pair found: " ++ show flag_cr3
+    putStrLn $ "New pairs for hasChild"
+    putStrLn $ show $ r_cr3 role
+    putStrLn $ "New pairs for marriedTo"
+    putStrLn $ show $ r_cr3 (Role "marriedTo")
+    putStrLn $ "Applying CR4 to <" ++ show gci_cr4 ++ ">, Person, and result of previous application"
+    putStrLn $ "New successors found: " ++ show flag_cr4
+    putStrLn $ "New successors for Person"
+    putStrLn $ show $ s_cr4 name
+    putStrLn $ "New pairs for Top"
+    putStrLn $ show $ s_cr4 top
