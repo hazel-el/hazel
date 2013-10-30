@@ -1,16 +1,21 @@
 -- TODO fill in header
 {- |
- - Module      :  Hazel.Core
- - Description :  Provides core functionality for EL Reasoner "Hazel"
- - Copyright   :  (c) <Authors or Affiliations>
- - License     :  <license>
- -
- - Maintainer  :  <email>
- - Stability   :  experimental
- - Portability :  portable | non-portable (<reason>)
- -
- - <module description starting at first column>
- - -}
+* Module      :  Hazel.Core
+
+* Description :  Provides core functionality for EL Reasoner "Hazel"
+
+* Copyright   :  (c) <Authors or Affiliations>
+
+* License     :  <license>
+
+* Maintainer  :  <email>
+
+* Stability   :  experimental
+
+* Portability :  portable | non-portable (<reason>)
+
+* <module description starting at first column>
+-}
 module Hazel.Core(
     Role (..),
     Concept (..),
@@ -32,7 +37,7 @@ data Role =
     
 data Concept =
     Top |
-    Name String Bool | -- Bool flag is true if it's not a dummy
+    Name String Bool | -- ^ Bool flag is true if it's not a dummy
     And Concept Concept |
     Exists Role Concept
     deriving (Eq, Ord)
@@ -41,7 +46,7 @@ data GCI =
     Subclass Concept Concept
 
 data TBox =
-    -- TBox gcis concept_names role_names
+    -- | Stores the GCIs and the signature (concept names and role names)
     TBox [GCI] (Set Concept) (Set Role) 
 
 
@@ -102,11 +107,13 @@ add_GCI (TBox gs cs rs) g =
 
 
 tBox_from_list :: [GCI] -> TBox
+-- ^ Converts a list of GCIs to a TBox datastructure
 tBox_from_list [] = TBox [] empty empty
 tBox_from_list (g:gt) =
     add_GCI (tBox_from_list gt) g
 
 
 tBox_union :: TBox -> TBox -> TBox
+-- ^ returns the union of two TBoxes
 tBox_union (TBox gs sc sr) (TBox hs tc tr) =
     TBox (gs ++ hs) (sc `union` tc) (sr `union` tr)

@@ -1,23 +1,30 @@
 -- TODO fill in header
 {- |
- - Module      :  Hazel.Normalize
- - Description :  Provides reasoning according to completion algorithm
- - Copyright   :  (c) <Authors or Affiliations>
- - License     :  <license>
- -
- - Maintainer  :  <email>
- - Stability   :  experimental
- - Portability :  portable | non-portable (<reason>)
- -
- - <module description starting at first column>
- - -}
+* Module      :  Hazel.Normalize
+
+* Description :  Normalization of TBoxes as preprocessing for completion
+algorithm
+
+* Copyright   :  (c) <Authors or Affiliations>
+
+* License     :  <license>
+
+* Maintainer  :  <email>
+
+* Stability   :  experimental
+
+* Portability :  portable | non-portable (<reason>)
+
+* <module description starting at first column>
+-}
 module Hazel.Normalize where
 
 import Hazel.Core
--- import Data.Set
 
 
 normalizeGCI :: GCI -> TBox
+-- ^ returns a TBox obtained by exhaustively applying normalization rules to
+-- a GCI (according to /Pushing the EL Envelope/)
 normalizeGCI gci = case gci of
     -- Rule NF2 in Pushing the EL Envelope
     Subclass (And c (And d1 d2)) e -> 
@@ -73,5 +80,7 @@ normalizeGCI gci = case gci of
 
 -- TODO unschön: wenn TBox der Typ links wäre würden wir die Signatur
 -- rausschmeißen und neu berechnen, deshalb nur [GCI] links
+--
 normalize :: [GCI] -> TBox
+-- ^ TBox obtained by normalizing all GCIs in a list
 normalize = (foldl1 tBox_union) . (map normalizeGCI)
