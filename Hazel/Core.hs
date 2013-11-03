@@ -16,17 +16,20 @@
 
 * <module description starting at first column>
 -}
-module Hazel.Core(
-    Role (..),
-    Concept (..),
-    GCI (..),
-    TBox (..),
-    tBox_from_list,
-    tBox_union
-) where
+module Hazel.Core ( Role (..)
+                  , Concept (..)
+                  , GCI (..)
+                  , TBox (..)
+                  , gciToTBox
+                  , gcisToTBox
+                  )
+       where
 
+import Control.Arrow
+import Data.Foldable
 import Data.HashTable (hashString)
-import Data.Set
+import Data.Monoid
+import Data.Set hiding (map)
 import qualified Data.Text as T
 
 
@@ -72,46 +75,28 @@ instance Show GCI where
 instance Show TBox where
     show (TBox gs _ _) = show gs
 
+instance Monoid TBox where
+  mempty = TBox [] empty empty
+  mappend (TBox gs sc sr) (TBox hs tc tr) = TBox (gs ++ hs) (sc `union` tc) (sr `union` tr)
 
 -- Auxiliary functions
 
-pair_union :: Ord a => Ord b => (Set a, Set b) -> (Set a, Set b) -> (Set a, Set b)
-pair_union (sx, sy) (tx, ty) =
-    (sx `union` tx, sy `union` ty)
+unionPair :: (Ord a, Ord b) => (Set a, Set b) -> (Set a, Set b) -> (Set a, Set b)
+unionPair (a, b) = union a *** union b
 
+conceptNames :: Concept -> (Set Concept, Set Role)
+conceptNames Top = (empty, empty)
+conceptNames (And c d) = conceptNames c `unionPair` conceptNames d
+conceptNames (Exists r d) = conceptNames d `unionPair` (empty, singleton r)
+conceptNames nd = (singleton nd, empty)
 
-get_names :: Concept -> (Set Concept, Set Role)
-get_names c = case c of
-    Top ->
-        (empty, empty)
-    And c d ->
-        get_names c `pair_union` get_names d
-    Exists r d ->
-        get_names d `pair_union` (empty, singleton r)
-    Name s -> (singleton (Name s), empty)
-    Dummy s -> (singleton (Dummy s), empty)
+gciNames :: GCI -> (Set Concept, Set Role)
+gciNames (Subclass c d) = conceptNames c `unionPair` conceptNames d
 
+gciToTBox :: GCI -> TBox
+gciToTBox g = TBox [g] gcs grs
+  where (gcs, grs) = gciNames g
 
-get_names_gci :: GCI -> (Set Concept, Set Role)
-get_names_gci (Subclass c d) =
-    get_names c `pair_union` get_names d
-
-
-add_GCI :: TBox -> GCI -> TBox
-add_GCI (TBox gs cs rs) g =
-    TBox (g:gs) (cs `union` gcs) (rs `union` grs)
-  where
-    (gcs, grs) = get_names_gci g
-
-
-tBox_from_list :: [GCI] -> TBox
+gcisToTBox :: [GCI] -> TBox
 -- ^ Converts a list of GCIs to a TBox datastructure
-tBox_from_list [] = TBox [] empty empty
-tBox_from_list (g:gt) =
-    add_GCI (tBox_from_list gt) g
-
-
-tBox_union :: TBox -> TBox -> TBox
--- ^ returns the union of two TBoxes
-tBox_union (TBox gs sc sr) (TBox hs tc tr) =
-    TBox (gs ++ hs) (sc `union` tc) (sr `union` tr)
+gcisToTBox = foldMap gciToTBox
