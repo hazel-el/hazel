@@ -1,12 +1,19 @@
 -- TODO fill in header
 {- |
 * Module      :  Hazel.Core
+
 * Description :  Provides core functionality for EL Reasoner "Hazel"
+
 * Copyright   :  (c) <Authors or Affiliations>
+
 * License     :  <license>
+
 * Maintainer  :  <email>
+
 * Stability   :  experimental
+
 * Portability :  portable | non-portable (<reason>)
+
 * <module description starting at first column>
 -}
 
