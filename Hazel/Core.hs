@@ -27,16 +27,17 @@ module Hazel.Core(
 
 import Data.HashTable (hashString)
 import Data.Set
+import qualified Data.Text as T
 
 
 -- Datatypes --
 
-newtype Role = Role String
+newtype Role = Role T.Text
              deriving (Show, Eq, Ord)
 
 data Concept = Top
-             | Name String
-             | Dummy String
+             | Name T.Text
+             | Dummy T.Text
              | And Concept Concept
              | Exists Role Concept
              deriving (Eq, Ord)
@@ -56,9 +57,9 @@ instance Show Concept where
         Top ->
             "Thing"
         Name s ->
-            s
+            T.unpack s
         Dummy s ->
-            show $ hashString s
+            show . hashString $ T.unpack s
         And c1 c2 ->
 	    "(" ++ (show c1) ++ " and " ++ (show c2) ++ ")"
         Exists r c1 ->

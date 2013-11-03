@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Hazel.Core
 import Hazel.Completion
 import Hazel.Normalize

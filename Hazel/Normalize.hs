@@ -76,7 +76,7 @@ normalizeGCI gci = case gci of
     g ->
         tBox_from_list [g]
   where
-    dummy = Dummy (show gci)
+    dummy = Dummy . T.pack . show $ gci
 
 -- TODO unschön: wenn TBox der Typ links wäre würden wir die Signatur
 -- rausschmeißen und neu berechnen, deshalb nur [GCI] links
