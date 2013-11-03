@@ -1,12 +1,19 @@
 -- TODO fill in header
 {- |
 * Module      :  Hazel.Normalize
+
 * Description :  Functions for reasoning according to completion algorithm
+
 * Copyright   :  (c) <Authors or Affiliations>
+
 * License     :  <license>
+
 * Maintainer  :  <email>
+
 * Stability   :  experimental
+
 * Portability :  portable | non-portable (<reason>)
+
 * <module description starting at first column>
 -}
 
