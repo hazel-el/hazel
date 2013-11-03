@@ -31,10 +31,9 @@ import Data.Set
 
 -- Datatypes --
 
-data Role =
-    Role String
-    deriving (Eq, Ord)
-    
+newtype Role = Role String
+             deriving (Show, Eq, Ord)
+
 data Concept =
     Top |
     Name String Bool | -- ^ Bool flag is true if it's not a dummy
@@ -51,9 +50,6 @@ data TBox =
 
 
 -- show functions defined according to Manchester OWL Syntax used by Protege:
-
-instance Show Role where
-    show (Role s) = s
 
 instance Show Concept where
     show c = case c of
