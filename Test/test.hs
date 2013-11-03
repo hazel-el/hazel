@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import Data.Monoid ((<>))
+
 import Hazel.Core
 import Hazel.Completion
 import Hazel.Normalize
-
-import Data.Monoid
 
 role = Role "hasChild"
 top = Top
@@ -25,17 +25,17 @@ gci5c = Subclass conjunction existential
 gci5d = Subclass conjunction conjunction
 gci6 = Subclass top (And name top)
 
-(CGraph s_init r_init) = init_graph
+(CGraph s_init r_init) = initGraph
 
 gci_cr1 = Subclass top name
-(CGraph s_cr1 r_cr1, flag_cr1) = cr1 gci_cr1 init_graph top
-(CGraph t_cr1 q_cr1, glag_cr1) = cr1 gci_cr1 init_graph name
+(CGraph s_cr1 r_cr1, flag_cr1) = cr1 gci_cr1 initGraph top
+(CGraph t_cr1 q_cr1, glag_cr1) = cr1 gci_cr1 initGraph name
 
 gci_cr2 = Subclass conjunction (Name "Human")
-(CGraph s_cr2 r_cr2, flag_cr2) = cr2 gci_cr2 init_graph name
+(CGraph s_cr2 r_cr2, flag_cr2) = cr2 gci_cr2 initGraph name
 
 gci_cr3 = Subclass name existential
-(CGraph s_cr3 r_cr3, flag_cr3) = cr3 gci_cr3 init_graph name
+(CGraph s_cr3 r_cr3, flag_cr3) = cr3 gci_cr3 initGraph name
 
 gci_cr4 = Subclass existential (Name "Father")
 (CGraph s_cr4 r_cr4, flag_cr4) = cr4 gci_cr4 (CGraph s_cr3 r_cr3) name name
@@ -82,17 +82,17 @@ main = do
     putStrLn "\nTesting Completion Graph Initialization"
     print $ s_init (Name "Person")
     putStrLn "\nTesting Completion Rules"
-    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Top, and init_graph"
+    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Top, and initGraph"
     putStrLn $ "New successor found: " ++ show flag_cr1
     putStrLn $ "New successors of Top:"
     print $ s_cr1 Top
-    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Person, and init_graph"
+    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Person, and initGraph"
     putStrLn $ "New successor found: " ++ show glag_cr1
     putStrLn $ "New successors of Person:"
     print $ t_cr1 name
     putStrLn $ "New successors of Top:"
     print $ t_cr1 top
-    putStrLn $ "Applying CR2 to <" ++ show gci_cr2 ++ ">, Person, and init_graph"
+    putStrLn $ "Applying CR2 to <" ++ show gci_cr2 ++ ">, Person, and initGraph"
     putStrLn $ "New successor found: " ++ show flag_cr2
     putStrLn $ "New successors of Person:"
     print $ s_cr2 name
@@ -100,7 +100,7 @@ main = do
     print $ s_cr2 top
     putStrLn $ "New successors of Dummy:"
     print $ s_cr2 (Name "Dummy") -- FIXME: shouldn't this be a Dummy instead?
-    putStrLn $ "Applying CR3 to <" ++ show gci_cr3 ++ ">, Person, and init_graph"
+    putStrLn $ "Applying CR3 to <" ++ show gci_cr3 ++ ">, Person, and initGraph"
     putStrLn $ "New role pair found: " ++ show flag_cr3
     putStrLn $ "New pairs for hasChild"
     print $ r_cr3 role
