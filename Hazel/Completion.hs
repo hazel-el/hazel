@@ -43,8 +43,8 @@ initGraph =
     s Top = [Top]
     s (Name n) = [Name n, Top]
     s (Dummy n) = [Dummy n, Top]
+    s _ = error "FIXME: Implement this?"
     r _ = []
-
 
 -- Functions applying Completion Rules
 
@@ -65,6 +65,7 @@ cr2 (Subclass (And c1 c2) d) (CGraph s r) c
     | otherwise = (CGraph s r, False)
   where
     s' = except s c (d:s c)
+cr2 _ _ _ = error "FIXME: Implement this?"
 
 cr3 (Subclass c' (Exists role d)) (CGraph s r) c
     | (c' `elem` s c) && ((c, d) `notElem` r role) =
@@ -72,6 +73,7 @@ cr3 (Subclass c' (Exists role d)) (CGraph s r) c
     | otherwise = (CGraph s r, False)
   where
     r' = except r role ((c, d):r role)
+cr3 _ _ _ = error "FIXME: Implement this?"
 
 cr4 (Subclass (Exists role d') e) (CGraph s r) c d
     | ((c, d) `elem` r role) && (d' `elem` s d) && (e `notElem` s c) =
@@ -79,7 +81,7 @@ cr4 (Subclass (Exists role d') e) (CGraph s r) c d
     | otherwise = (CGraph s r, False)
   where
     s' = except s c (e:s c)
-
+cr4 _ _ _ _ = error "FIXME: Implement this?"
 
 -- Functions ensuring the rules are applied exhaustively
 
