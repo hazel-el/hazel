@@ -3,7 +3,8 @@
 import Hazel.Core
 import Hazel.Completion
 import Hazel.Normalize
--- import Data.Set
+
+import Data.Monoid
 
 role = Role "hasChild"
 top = Top
@@ -11,7 +12,7 @@ name = Name "Person"
 conjunction = top `And` name
 existential = Exists role name
 gci = Subclass existential name
-tbox = tBox_from_list [gci, Subclass top conjunction]
+tbox = gcisToTBox [gci, Subclass top conjunction]
 gci2 = Subclass (And name existential) name
 gci2b = Subclass (And name conjunction) name
 gci3 = Subclass (Exists role existential) name
@@ -74,10 +75,10 @@ main = do
     print gci6
     print $ normalizeGCI gci6
     putStrLn "\n Testing Signature Computation"
-    putStrLn $ show_names $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
+    putStrLn $ show_names $ normalizeGCI gci3b <> normalizeGCI gci5c
     putStrLn "\n Testing TBox normalization"
     print $ normalize [gci3b, gci5c]
-    print $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
+    print $ normalizeGCI gci3b <> normalizeGCI gci5c
     putStrLn "\nTesting Completion Graph Initialization"
     print $ s_init (Name "Person")
     putStrLn "\nTesting Completion Rules"
