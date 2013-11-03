@@ -1,21 +1,15 @@
 -- TODO fill in header
 {- |
 * Module      :  Hazel.Core
-
 * Description :  Provides core functionality for EL Reasoner "Hazel"
-
 * Copyright   :  (c) <Authors or Affiliations>
-
 * License     :  <license>
-
 * Maintainer  :  <email>
-
 * Stability   :  experimental
-
 * Portability :  portable | non-portable (<reason>)
-
 * <module description starting at first column>
 -}
+
 module Hazel.Core ( Role (..)
                   , Concept (..)
                   , GCI (..)
@@ -25,62 +19,62 @@ module Hazel.Core ( Role (..)
                   )
        where
 
-import Control.Arrow
-import Data.Foldable
+import Control.Arrow ((***))
+import Data.Foldable (foldMap)
 import Data.HashTable (hashString)
-import Data.Monoid
-import Data.Set hiding (map)
-import qualified Data.Text as T
+import Data.Monoid ( Monoid (..)
+                   , mempty
+                   , (<>)
+                   )
+import Data.Set ( Set (..)
+                , empty
+                , singleton
+                , union
+                )
+import Data.Text ( Text (..)
+                 , unpack
+                 )
 
-
--- Datatypes --
-
-newtype Role = Role T.Text
-             deriving (Show, Eq, Ord)
+-- Datatypes
+newtype Role = Role Text
+             deriving (Eq, Ord)
 
 data Concept = Top
-             | Name T.Text
-             | Dummy T.Text
+             | Name Text
+             | Dummy Text
              | And Concept Concept
              | Exists Role Concept
              deriving (Eq, Ord)
 
-data GCI =
-    Subclass Concept Concept
+data GCI = Subclass Concept Concept
 
 data TBox =
-    -- | Stores the GCIs and the signature (concept names and role names)
-    TBox [GCI] (Set Concept) (Set Role)
+  -- | Stores the GCIs and the signature (concept names and role names)
+  TBox [GCI] (Set Concept) (Set Role)
 
 
 -- show functions defined according to Manchester OWL Syntax used by Protege:
+instance Show Role where
+  show (Role r) = unpack r
 
 instance Show Concept where
-    show c = case c of
-        Top ->
-            "Thing"
-        Name s ->
-            T.unpack s
-        Dummy s ->
-            show . hashString $ T.unpack s
-        And c1 c2 ->
-	    "(" ++ (show c1) ++ " and " ++ (show c2) ++ ")"
-        Exists r c1 ->
-            "(" ++ (show r) ++ " some " ++ (show c1) ++ ")"
+  show Top = "Thing"
+  show (Name s) = unpack s
+  show (Dummy s) = show . hashString $ unpack s
+  show (And c1 c2) = concat ["(", show c1, " and ", show c2, ")"]
+  show (Exists r c) = concat ["(", show r, " some ", show c, ")"]
 
 instance Show GCI where
-    show (Subclass c1 c2) =
-        (show c1) ++ " SubClassOf " ++ (show c2)
+  show (Subclass c1 c2) = concat [show c1, " SubClassOf ", show c2]
 
 instance Show TBox where
-    show (TBox gs _ _) = show gs
+  show (TBox gs _ _) = show gs
 
 instance Monoid TBox where
   mempty = TBox [] empty empty
   mappend (TBox gs sc sr) (TBox hs tc tr) = TBox (gs ++ hs) (sc `union` tc) (sr `union` tr)
 
 -- Auxiliary functions
-
 unionPair :: (Ord a, Ord b) => (Set a, Set b) -> (Set a, Set b) -> (Set a, Set b)
 unionPair (a, b) = union a *** union b
 
