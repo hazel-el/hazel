@@ -43,71 +43,71 @@ show_names (TBox gs sc sr) = "(" ++ show sc ++ ", " ++ show sr ++ ")"
 
 main = do
     putStrLn "\nTesting Show Functions"
-    putStrLn $ show role
-    putStrLn $ show top
-    putStrLn $ show name
-    putStrLn $ show conjunction
-    putStrLn $ show existential
-    putStrLn $ show gci
-    putStrLn $ show tbox
+    print role
+    print top
+    print name
+    print conjunction
+    print existential
+    print gci
+    print tbox
     putStrLn "\nTesting Normalization for GCIs"
-    putStrLn $ show gci2
-    putStrLn $ show $ normalizeGCI gci2
-    putStrLn $ show gci2b
-    putStrLn $ show $ normalizeGCI gci2b
-    putStrLn $ show gci3
-    putStrLn $ show $ normalizeGCI gci3
-    putStrLn $ show gci3b
-    putStrLn $ show $ normalizeGCI gci3b
-    putStrLn $ show gci4
-    putStrLn $ show $ normalizeGCI gci4
-    putStrLn $ show gci4b
-    putStrLn $ show $ normalizeGCI gci4b
-    putStrLn $ show gci5
-    putStrLn $ show $ normalizeGCI gci5
-    putStrLn $ show gci5b
-    putStrLn $ show $ normalizeGCI gci5b
-    putStrLn $ show gci5c
-    putStrLn $ show $ normalizeGCI gci5c
-    putStrLn $ show gci5d
-    putStrLn $ show $ normalizeGCI gci5d
-    putStrLn $ show gci6
-    putStrLn $ show $ normalizeGCI gci6
+    print gci2
+    print $ normalizeGCI gci2
+    print gci2b
+    print $ normalizeGCI gci2b
+    print gci3
+    print $ normalizeGCI gci3
+    print gci3b
+    print $ normalizeGCI gci3b
+    print gci4
+    print $ normalizeGCI gci4
+    print gci4b
+    print $ normalizeGCI gci4b
+    print gci5
+    print $ normalizeGCI gci5
+    print gci5b
+    print $ normalizeGCI gci5b
+    print gci5c
+    print $ normalizeGCI gci5c
+    print gci5d
+    print $ normalizeGCI gci5d
+    print gci6
+    print $ normalizeGCI gci6
     putStrLn "\n Testing Signature Computation"
     putStrLn $ show_names $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
     putStrLn "\n Testing TBox normalization"
-    putStrLn $ show $ normalize [gci3b, gci5c]
-    putStrLn $ show $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
+    print $ normalize [gci3b, gci5c]
+    print $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
     putStrLn "\nTesting Completion Graph Initialization"
-    putStrLn $ show $ s_init (Name "Person")
+    print $ s_init (Name "Person")
     putStrLn "\nTesting Completion Rules"
     putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Top, and init_graph"
     putStrLn $ "New successor found: " ++ show flag_cr1
     putStrLn $ "New successors of Top:"
-    putStrLn $ show $ s_cr1 Top
+    print $ s_cr1 Top
     putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Person, and init_graph"
     putStrLn $ "New successor found: " ++ show glag_cr1
     putStrLn $ "New successors of Person:"
-    putStrLn $ show $ t_cr1 name
+    print $ t_cr1 name
     putStrLn $ "New successors of Top:"
-    putStrLn $ show $ t_cr1 top
+    print $ t_cr1 top
     putStrLn $ "Applying CR2 to <" ++ show gci_cr2 ++ ">, Person, and init_graph"
     putStrLn $ "New successor found: " ++ show flag_cr2
     putStrLn $ "New successors of Person:"
-    putStrLn $ show $ s_cr2 name
+    print $ s_cr2 name
     putStrLn $ "New successors of Top:"
-    putStrLn $ show $ s_cr2 top
+    print $ s_cr2 top
     putStrLn $ "New successors of Dummy:"
-    putStrLn $ show $ s_cr2 (Name "Dummy") -- FIXME: shouldn't this be a Dummy instead?
+    print $ s_cr2 (Name "Dummy") -- FIXME: shouldn't this be a Dummy instead?
     putStrLn $ "Applying CR3 to <" ++ show gci_cr3 ++ ">, Person, and init_graph"
     putStrLn $ "New role pair found: " ++ show flag_cr3
     putStrLn $ "New pairs for hasChild"
-    putStrLn $ show $ r_cr3 role
+    print $ r_cr3 role
     putStrLn $ "New pairs for marriedTo"
-    putStrLn $ show $ r_cr3 (Role "marriedTo")
+    print $ r_cr3 (Role "marriedTo")
     putStrLn $ "Applying CR4 to <" ++ show gci_cr4 ++ ">, Person, and result of previous application"
     putStrLn $ "New successors found: " ++ show flag_cr4
     putStrLn $ "New successors for Person"
-    putStrLn $ show $ s_cr4 name
+    print $ s_cr4 name
     putStrLn $ "New pairs for Top"
-    putStrLn $ show $ s_cr4 top
+    print $ s_cr4 top
