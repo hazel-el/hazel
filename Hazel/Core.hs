@@ -16,6 +16,7 @@ module Hazel.Core ( Role (..)
                   , TBox (..)
                   , gciToTBox
                   , gcisToTBox
+                  , gciNames
                   )
        where
 
@@ -24,14 +25,13 @@ import Data.Foldable (foldMap)
 import Data.HashTable (hashString)
 import Data.Monoid ( Monoid (..)
                    , mempty
-                   , (<>)
                    )
-import Data.Set ( Set (..)
+import Data.Set ( Set
                 , empty
                 , singleton
                 , union
                 )
-import Data.Text ( Text (..)
+import Data.Text ( Text
                  , unpack
                  )
 
@@ -47,10 +47,12 @@ data Concept = Top
              deriving (Eq, Ord)
 
 data GCI = Subclass Concept Concept
+           deriving (Eq)
 
 data TBox =
   -- | Stores the GCIs and the signature (concept names and role names)
   TBox [GCI] (Set Concept) (Set Role)
+  deriving (Eq)
 
 
 -- show functions defined according to Manchester OWL Syntax used by Protege:

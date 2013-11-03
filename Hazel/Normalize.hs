@@ -42,10 +42,10 @@ normalizeGCI gci@(Subclass lhs rhs) = go lhs rhs
         go d (Exists r c@(And _ _)) = (dummy, c) `union` (d, Exists r dummy)
         go c (Exists r d@(Exists _ _)) = (c, Exists r dummy) `union` (dummy, d)
         -- Rule NF5
-        go lhs@(And _ _) rhs@(Exists _ _) = (lhs, dummy) `union` (dummy, rhs)
-        go lhs@(Exists _ _) rhs@(And _ _) = (lhs, dummy) `union` (dummy, rhs)
-        go lhs@(And _ _) rhs@(And _ _) = (lhs, dummy) `union` (dummy, rhs)
-        go lhs@(Exists _ _) rhs@(Exists _ _) = (lhs, dummy) `union` (dummy, rhs)
+        go (And _ _) (Exists _ _) = (lhs, dummy) `union` (dummy, rhs)
+        go (Exists _ _) (And _ _) = (lhs, dummy) `union` (dummy, rhs)
+        go (And _ _) (And _ _) = (lhs, dummy) `union` (dummy, rhs)
+        go (Exists _ _) (Exists _ _) = (lhs, dummy) `union` (dummy, rhs)
         -- Rule NF7
         go c (And d e) = (c, d) `union` (c, e)
         -- remove tautologies
