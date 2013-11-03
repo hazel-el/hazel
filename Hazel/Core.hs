@@ -34,12 +34,12 @@ import Data.Set
 newtype Role = Role String
              deriving (Show, Eq, Ord)
 
-data Concept =
-    Top |
-    Name String Bool | -- ^ Bool flag is true if it's not a dummy
-    And Concept Concept |
-    Exists Role Concept
-    deriving (Eq, Ord)
+data Concept = Top
+             | Name String
+             | Dummy String
+             | And Concept Concept
+             | Exists Role Concept
+             deriving (Eq, Ord)
 
 data GCI =
     Subclass Concept Concept
@@ -55,9 +55,9 @@ instance Show Concept where
     show c = case c of
         Top ->
             "Thing"
-        Name s True ->
+        Name s ->
             s
-        Name s False ->
+        Dummy s ->
             show $ hashString s
         And c1 c2 ->
 	    "(" ++ (show c1) ++ " and " ++ (show c2) ++ ")"
@@ -87,7 +87,8 @@ get_names c = case c of
         get_names c `pair_union` get_names d
     Exists r d ->
         get_names d `pair_union` (empty, singleton r)
-    Name s b -> (singleton (Name s b), empty)
+    Name s -> (singleton (Name s), empty)
+    Dummy s -> (singleton (Dummy s), empty)
 
 
 get_names_gci :: GCI -> (Set Concept, Set Role)
