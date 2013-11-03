@@ -17,7 +17,8 @@
 * <module description starting at first column>
 -}
 module Hazel.Normalize ( normalize
-                       , normalizeGCI)
+                       , normalizeGCI
+                       )
        where
 
 import Control.Arrow ( (***)

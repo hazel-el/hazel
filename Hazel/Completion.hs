@@ -26,7 +26,7 @@ data CGraph =
     -- | Labelling function for nodes, and labelling function for edges
     CGraph (Concept -> [Concept]) (Role -> [CEdge])
 
-type CEdge = (Concept,Concept)
+type CEdge = (Concept, Concept)
 
 
 
