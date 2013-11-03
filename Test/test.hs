@@ -5,7 +5,7 @@ import Hazel.Normalize
 
 role = Role "hasChild"
 top = Top
-name = Name "Person" True
+name = Name "Person"
 conjunction = top `And` name
 existential = Exists role name
 gci = Subclass existential name
@@ -28,13 +28,13 @@ gci_cr1 = Subclass top name
 (CGraph s_cr1 r_cr1, flag_cr1) = cr1 gci_cr1 init_graph top
 (CGraph t_cr1 q_cr1, glag_cr1) = cr1 gci_cr1 init_graph name
 
-gci_cr2 = Subclass conjunction (Name "Human" True)
+gci_cr2 = Subclass conjunction (Name "Human")
 (CGraph s_cr2 r_cr2, flag_cr2) = cr2 gci_cr2 init_graph name
 
 gci_cr3 = Subclass name existential
 (CGraph s_cr3 r_cr3, flag_cr3) = cr3 gci_cr3 init_graph name
 
-gci_cr4 = Subclass existential (Name "Father" True)
+gci_cr4 = Subclass existential (Name "Father")
 (CGraph s_cr4 r_cr4, flag_cr4) = cr4 gci_cr4 (CGraph s_cr3 r_cr3) name name
 
 show_names (TBox gs sc sr) = "(" ++ show sc ++ ", " ++ show sr ++ ")"
@@ -77,7 +77,7 @@ main = do
     putStrLn $ show $ normalize [gci3b, gci5c]
     putStrLn $ show $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
     putStrLn "\nTesting Completion Graph Initialization"
-    putStrLn $ show $ s_init (Name "Person" True)
+    putStrLn $ show $ s_init (Name "Person")
     putStrLn "\nTesting Completion Rules"
     putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Top, and init_graph"
     putStrLn $ "New successor found: " ++ show flag_cr1
@@ -96,7 +96,7 @@ main = do
     putStrLn $ "New successors of Top:"
     putStrLn $ show $ s_cr2 top
     putStrLn $ "New successors of Dummy:"
-    putStrLn $ show $ s_cr2 (Name "Dummy" True)
+    putStrLn $ show $ s_cr2 (Name "Dummy") -- FIXME: shouldn't this be a Dummy instead?
     putStrLn $ "Applying CR3 to <" ++ show gci_cr3 ++ ">, Person, and init_graph"
     putStrLn $ "New role pair found: " ++ show flag_cr3
     putStrLn $ "New pairs for hasChild"

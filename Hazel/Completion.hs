@@ -51,7 +51,8 @@ init_graph =
     CGraph s r
   where
     s Top = [Top]
-    s (Name n f) = [Name n f, Top]
+    s (Name n) = [Name n, Top]
+    s (Dummy n) = [Dummy n, Top]
     r _ = []
 
 
