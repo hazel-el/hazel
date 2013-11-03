@@ -22,7 +22,7 @@ module Hazel.Core ( Role (..)
 
 import Control.Arrow ((***))
 import Data.Foldable (foldMap)
-import Data.HashTable (hashString)
+import Data.Hashable (hash)
 import Data.Monoid ( Monoid (..)
                    , mempty
                    )
@@ -62,7 +62,7 @@ instance Show Role where
 instance Show Concept where
   show Top = "Thing"
   show (Name s) = unpack s
-  show (Dummy s) = show . hashString $ unpack s
+  show (Dummy s) = show . hash . unpack $ s
   show (And c1 c2) = concat ["(", show c1, " and ", show c2, ")"]
   show (Exists r c) = concat ["(", show r, " some ", show c, ")"]
 
