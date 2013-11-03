@@ -46,7 +46,7 @@ data GCI =
 
 data TBox =
     -- | Stores the GCIs and the signature (concept names and role names)
-    TBox [GCI] (Set Concept) (Set Role) 
+    TBox [GCI] (Set Concept) (Set Role)
 
 
 -- show functions defined according to Manchester OWL Syntax used by Protege:
@@ -54,7 +54,7 @@ data TBox =
 instance Show Concept where
     show c = case c of
         Top ->
-            "Thing"  
+            "Thing"
         Name s True ->
             s
         Name s False ->
