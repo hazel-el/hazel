@@ -9,7 +9,7 @@ name = Name "Person" True
 conjunction = top `And` name
 existential = Exists role name
 gci = Subclass existential name
-tbox = tBox_from_list [gci, Subclass top conjunction]
+tbox = tBoxFromList [gci, Subclass top conjunction]
 gci2 = Subclass (And name existential) name
 gci2b = Subclass (And name conjunction) name
 gci3 = Subclass (Exists role existential) name
@@ -22,90 +22,90 @@ gci5c = Subclass conjunction existential
 gci5d = Subclass conjunction conjunction
 gci6 = Subclass top (And name top)
 
-(CGraph s_init r_init) = init_graph
+(CGraph sInit rInit) = initGraph
 
-gci_cr1 = Subclass top name
-(CGraph s_cr1 r_cr1, flag_cr1) = cr1 gci_cr1 init_graph top
-(CGraph t_cr1 q_cr1, glag_cr1) = cr1 gci_cr1 init_graph name
+gciCr1 = Subclass top name
+(CGraph sCr1 rCr1, flagCr1) = cr1 gciCr1 initGraph top
+(CGraph tCr1 qCr1, glagCr1) = cr1 gciCr1 initGraph name
 
-gci_cr2 = Subclass conjunction (Name "Human" True)
-(CGraph s_cr2 r_cr2, flag_cr2) = cr2 gci_cr2 init_graph name
+gciCr2 = Subclass conjunction (Name "Human" True)
+(CGraph sCr2 rCr2, flagCr2) = cr2 gciCr2 initGraph name
 
-gci_cr3 = Subclass name existential
-(CGraph s_cr3 r_cr3, flag_cr3) = cr3 gci_cr3 init_graph name
+gciCr3 = Subclass name existential
+(CGraph sCr3 rCr3, flagCr3) = cr3 gciCr3 initGraph name
 
-gci_cr4 = Subclass existential (Name "Father" True)
-(CGraph s_cr4 r_cr4, flag_cr4) = cr4 gci_cr4 (CGraph s_cr3 r_cr3) name name
+gciCr4 = Subclass existential (Name "Father" True)
+(CGraph sCr4 rCr4, flagCr4) = cr4 gciCr4 (CGraph sCr3 rCr3) name name
 
-show_names (TBox gs sc sr) = "(" ++ show sc ++ ", " ++ show sr ++ ")"
+showNames (TBox gs sc sr) = "(" ++ show sc ++ ", " ++ show sr ++ ")"
 
 main = do
     putStrLn "\nTesting Show Functions"
-    putStrLn $ show role
-    putStrLn $ show top
-    putStrLn $ show name
-    putStrLn $ show conjunction
-    putStrLn $ show existential
-    putStrLn $ show gci
-    putStrLn $ show tbox
+    print role
+    print top
+    print name
+    print conjunction
+    print existential
+    print gci
+    print tbox
     putStrLn "\nTesting Normalization for GCIs"
-    putStrLn $ show gci2
-    putStrLn $ show $ normalizeGCI gci2
-    putStrLn $ show gci2b
-    putStrLn $ show $ normalizeGCI gci2b
-    putStrLn $ show gci3
-    putStrLn $ show $ normalizeGCI gci3
-    putStrLn $ show gci3b
-    putStrLn $ show $ normalizeGCI gci3b
-    putStrLn $ show gci4
-    putStrLn $ show $ normalizeGCI gci4
-    putStrLn $ show gci4b
-    putStrLn $ show $ normalizeGCI gci4b
-    putStrLn $ show gci5
-    putStrLn $ show $ normalizeGCI gci5
-    putStrLn $ show gci5b
-    putStrLn $ show $ normalizeGCI gci5b
-    putStrLn $ show gci5c
-    putStrLn $ show $ normalizeGCI gci5c
-    putStrLn $ show gci5d
-    putStrLn $ show $ normalizeGCI gci5d
-    putStrLn $ show gci6
-    putStrLn $ show $ normalizeGCI gci6
+    print gci2
+    print $ normalizeGCI gci2
+    print gci2b
+    print $ normalizeGCI gci2b
+    print gci3
+    print $ normalizeGCI gci3
+    print gci3b
+    print $ normalizeGCI gci3b
+    print gci4
+    print $ normalizeGCI gci4
+    print gci4b
+    print $ normalizeGCI gci4b
+    print gci5
+    print $ normalizeGCI gci5
+    print gci5b
+    print $ normalizeGCI gci5b
+    print gci5c
+    print $ normalizeGCI gci5c
+    print gci5d
+    print $ normalizeGCI gci5d
+    print gci6
+    print $ normalizeGCI gci6
     putStrLn "\n Testing Signature Computation"
-    putStrLn $ show_names $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
+    print $ showNames $ normalizeGCI gci3b `tBoxUnion` normalizeGCI gci5c
     putStrLn "\n Testing TBox normalization"
-    putStrLn $ show $ normalize [gci3b, gci5c]
-    putStrLn $ show $ normalizeGCI gci3b `tBox_union` normalizeGCI gci5c
+    print $ normalize [gci3b, gci5c]
+    print $ normalizeGCI gci3b `tBoxUnion` normalizeGCI gci5c
     putStrLn "\nTesting Completion Graph Initialization"
-    putStrLn $ show $ s_init (Name "Person" True)
+    print $ sInit (Name "Person" True)
     putStrLn "\nTesting Completion Rules"
-    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Top, and init_graph"
-    putStrLn $ "New successor found: " ++ show flag_cr1
-    putStrLn $ "New successors of Top:"
-    putStrLn $ show $ s_cr1 Top
-    putStrLn $ "Applying CR1 to <" ++ show gci_cr1 ++ ">, Person, and init_graph"
-    putStrLn $ "New successor found: " ++ show glag_cr1
-    putStrLn $ "New successors of Person:"
-    putStrLn $ show $ t_cr1 name
-    putStrLn $ "New successors of Top:"
-    putStrLn $ show $ t_cr1 top
-    putStrLn $ "Applying CR2 to <" ++ show gci_cr2 ++ ">, Person, and init_graph"
-    putStrLn $ "New successor found: " ++ show flag_cr2
-    putStrLn $ "New successors of Person:"
-    putStrLn $ show $ s_cr2 name
-    putStrLn $ "New successors of Top:"
-    putStrLn $ show $ s_cr2 top
-    putStrLn $ "New successors of Dummy:"
-    putStrLn $ show $ s_cr2 (Name "Dummy" True)
-    putStrLn $ "Applying CR3 to <" ++ show gci_cr3 ++ ">, Person, and init_graph"
-    putStrLn $ "New role pair found: " ++ show flag_cr3
-    putStrLn $ "New pairs for hasChild"
-    putStrLn $ show $ r_cr3 role
-    putStrLn $ "New pairs for marriedTo"
-    putStrLn $ show $ r_cr3 (Role "marriedTo")
-    putStrLn $ "Applying CR4 to <" ++ show gci_cr4 ++ ">, Person, and result of previous application"
-    putStrLn $ "New successors found: " ++ show flag_cr4
-    putStrLn $ "New successors for Person"
-    putStrLn $ show $ s_cr4 name
-    putStrLn $ "New pairs for Top"
-    putStrLn $ show $ s_cr4 top
+    print $ "Applying CR1 to <" ++ show gciCr1 ++ ">, Top, and initGraph"
+    print $ "New successor found: " ++ show flagCr1
+    print "New successors of Top:"
+    print $ sCr1 Top
+    print $ "Applying CR1 to <" ++ show gciCr1 ++ ">, Person, and initGraph"
+    print $ "New successor found: " ++ show glagCr1
+    print "New successors of Person:"
+    print $ tCr1 name
+    print "New successors of Top:"
+    print $ tCr1 top
+    print $ "Applying CR2 to <" ++ show gciCr2 ++ ">, Person, and initGraph"
+    print $ "New successor found: " ++ show flagCr2
+    print "New successors of Person:"
+    print $ sCr2 name
+    print "New successors of Top:"
+    print $ sCr2 top
+    print "New successors of Dummy:"
+    print $ sCr2 (Name "Dummy" True)
+    print $ "Applying CR3 to <" ++ show gciCr3 ++ ">, Person, and initGraph"
+    print $ "New role pair found: " ++ show flagCr3
+    print "New pairs for hasChild"
+    print $ rCr3 role
+    print "New pairs for marriedTo"
+    print $ rCr3 (Role "marriedTo")
+    print $ "Applying CR4 to <" ++ show gciCr4 ++ ">, Person, and result of previous application"
+    print $ "New successors found: " ++ show flagCr4
+    print "New successors for Person"
+    print $ sCr4 name
+    print "New pairs for Top"
+    print $ sCr4 top
