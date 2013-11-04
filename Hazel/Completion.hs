@@ -37,7 +37,7 @@ except :: (Eq a) =>
     (a -> b) -- ^ original function
     -> a -- ^ argument whose function value should be replaced
     -> b -- ^ new value
-    -> (a -> b)
+    -> a -> b
 except f x yn =
     fn
   where
@@ -45,9 +45,9 @@ except f x yn =
         | o == x = yn
         | otherwise = f o
 
-init_graph :: CGraph
+initGraph :: CGraph
 -- ^ Initialization of the completion graph
-init_graph =
+initGraph =
     CGraph s r
   where
     s Top = [Top]
@@ -63,27 +63,27 @@ cr3 :: GCI -> CGraph -> Concept -> (CGraph, Bool)
 cr4 :: GCI -> CGraph -> Concept -> Concept -> (CGraph, Bool)
 
 cr1 (Subclass c' d) (CGraph s r) c
-    | (c' `elem` s c) && not (d `elem` s c) = (CGraph sneu r, True)
+    | (c' `elem` s c) && (d `notElem` s c) = (CGraph sneu r, True)
     | otherwise = (CGraph s r, False)
   where
     sneu = except s c (d:s c)
 
 cr2 (Subclass (And c1 c2) d) (CGraph s r) c
-    | (c1 `elem` s c) && (c2 `elem` s c) && not (d `elem` s c) =
+    | (c1 `elem` s c) && (c2 `elem` s c) && (d `notElem` s c) =
         (CGraph sneu r, True)
     | otherwise = (CGraph s r, False)
   where
     sneu = except s c (d:s c)
 
 cr3 (Subclass c' (Exists role d)) (CGraph s r) c
-    | (c' `elem` s c) && not ((c, d) `elem` r role) =
+    | (c' `elem` s c) && ((c, d) `notElem` r role) =
         (CGraph s rneu, True)
     | otherwise = (CGraph s r, False)
   where
     rneu = except r role ((c, d):r role) 
 
 cr4 (Subclass (Exists role d') e) (CGraph s r) c d
-    | ((c, d) `elem` r role) && (d' `elem` s d) && not (e `elem` s c) =
+    | ((c, d) `elem` r role) && (d' `elem` s d) && (e `notElem` s c) =
         (CGraph sneu r, True)
     | otherwise = (CGraph s r, False)
   where
