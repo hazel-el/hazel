@@ -23,6 +23,7 @@ library
                      , containers ==0.5.*
                      , text ==0.11.*
                      , hashable ==1.2.*
+                     , mtl ==2.1.*
 
 Test-Suite test-hazel
   ghc-options:     -Wall -Werror
@@ -35,6 +36,7 @@ Test-Suite test-hazel
                  , hazel
                  , hspec ==1.7.*
                  , hspec-discover ==0.2.*
+                 , mtl ==2.1.*
 
 source-repository head
   type:     git
