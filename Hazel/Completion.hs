@@ -50,7 +50,7 @@ initGraph =
     s Top = [Top]
     s (Name n) = [Name n, Top]
     s (Dummy n) = [Dummy n, Top]
-    s _ = error "FIXME: Implement this?"
+    s _ = error "Complex concepts are not valid nodes in CGraph"
     r _ = []
 
 -- Functions applying Completion Rules
