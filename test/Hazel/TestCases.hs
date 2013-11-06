@@ -9,6 +9,7 @@ import Data.Set ( Set
 import Data.Text (pack)
 
 import Hazel.Core
+import Hazel.Completion (Node)
 
 toDummy :: GCI -> Concept
 toDummy = Dummy . pack . show
@@ -21,6 +22,9 @@ top = Top
 name = Name "Person"
 conjunction = top `And` name
 existential = Exists role name
+
+allNodes :: [Node]
+allNodes = [Name "Person", Name "Father", Name "Dummy", Name "Human"]
 
 gci :: GCI
 gci = Subclass existential name
