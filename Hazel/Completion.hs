@@ -25,8 +25,9 @@ import Data.List
 import Data.Set (elems)
 import Hazel.Core
 
-data CGraph =
-    CGraph (Concept -> [Node]) (Role -> [CEdge])
+data CGraph = CGraph { getNodes :: Concept -> [Node]
+                     , getRoles :: Role -> [CEdge]
+                     }
 
 type Node = Concept
 type CEdge = (Concept, Concept)
@@ -35,28 +36,30 @@ data CState = CState [Node] [CEdge]
               deriving (Eq)
 type Completion = State CState CGraph
 
+
 -- Auxiliary functions
 
 -- | Returns a function that is like f, except one argument gets a new value
-except :: (Eq a) =>
-          (a -> b) -- ^ original function
-          -> a     -- ^ argument whose function value should be replaced
-          -> b     -- ^ new value
+except :: (Eq a)
+          => (a -> b) -- ^ original function
+          -> a        -- ^ argument whose function value should be replaced
+          -> b        -- ^ new value
           -> a -> b
 except f x' y' x
-  | x == x' = y'
-  | otherwise = f x
+    | x == x'   = y'
+    | otherwise = f x
 
 initGraph :: [Node] -> CGraph
 -- ^ Initialization of the completion graph
 initGraph allNodes =
     CGraph n r
   where
-    n Top = nub $ Top : allNodes
-    n x@(Name _) = [x]
+    n Top         = nub $ Top : allNodes
+    n x@(Name _)  = [x]
     n x@(Dummy _) = [x]
-    n _ = error "Complex concepts are not valid nodes in CGraph"
-    r _ = []
+    n _           = error "Complex concepts are not valid nodes in CGraph"
+    r _           = []
+
 
 -- Functions applying Completion Rules
 
@@ -67,21 +70,21 @@ cr4 :: GCI -> CGraph -> (Concept, Concept) -> Completion
 
 changeNode :: Node -> State CState ()
 changeNode node = do
-  CState ns es <- get
-  put $ CState (node:ns) es
+    CState ns es <- get
+    put $ CState (node:ns) es
 
 cr1 (Subclass c' d) (CGraph n r) c
     | (c `notElem` n d) && (c `elem` n c') = do
-      changeNode c
-      return $ CGraph n' r
+        changeNode c
+        return $ CGraph n' r
     | otherwise = return $ CGraph n r
   where
     n' = except n d (c:n d)
 
 cr2 (Subclass (And c1 c2) d) (CGraph n r) c
     | (c `elem` n c1) && (c `elem` n c2) && (c `notElem` n d) = do
-      changeNode c
-      return $ CGraph n' r
+        changeNode c
+        return $ CGraph n' r
     | otherwise = return $ CGraph n r
   where
     n' = except n d (c:n d)
@@ -89,9 +92,9 @@ cr2 _ _ _ = error "Application of Rule CR2 not possible"
 
 cr3 (Subclass c' (Exists role d)) (CGraph n r) c
     | (c `elem` n c') && ((c, d) `notElem` r role) = do
-      CState ns es <- get
-      put $ CState ns ((c, d):es)
-      return $ CGraph n r'
+        CState ns es <- get
+        put $ CState ns ((c, d):es)
+        return $ CGraph n r'
     | otherwise = return $ CGraph n r
   where
     r' = except r role ((c, d):r role)
@@ -99,53 +102,36 @@ cr3 _ _ _ = error "Application of Rule CR3 not possible"
 
 cr4 (Subclass (Exists role d') e) (CGraph n r) (c, d)
     | ((c, d) `elem` r role) && (d `elem` n d') && (c `notElem` n e) = do
-      changeNode c
-      return $ CGraph n' r
+        changeNode c
+        return $ CGraph n' r
     | otherwise = return $ CGraph n r
   where
     n' = except n e (c:n e)
 cr4 _ _ _ = error "Application of Rule CR4 not possible"
 
+
+-- Functions ensuring the rules are applied exhaustively
+
 emptyState :: CState
 emptyState = CState [] []
 
 complete :: TBox -> CGraph
-complete (TBox gcis cs _) = go . initGraph $ elems cs
-  where go :: CGraph -> CGraph
-        go graph = if state' == emptyState then graph' else go graph'
-          where (graph', state') = runState (iterateGCI graph gcis) emptyState
+complete (TBox gcis cs _) =
+    go . initGraph $ elems cs
+  where
+    go :: CGraph -> CGraph
+    go graph
+        | state' == emptyState = graph'
+        | otherwise            = go graph'
+      where
+        (graph', state') = runState (iterateGCI graph gcis) emptyState
 
 iterateNodes :: CGraph -> GCI -> Completion
 iterateNodes cG@(CGraph n r) gci = case gci of
-  (Subclass (And c d) _) -> foldM (cr2 gci) cG (n c `intersect` n d)
-  (Subclass c' (Exists _ _)) -> foldM (cr3 gci) cG (n c')
-  (Subclass (Exists role _) _) -> foldM (cr4 gci) cG (r role)
-  (Subclass c' _) -> foldM (cr1 gci) cG (n c')
+    (Subclass (And c d) _)       -> foldM (cr2 gci) cG (n c `intersect` n d)
+    (Subclass c' (Exists _ _))   -> foldM (cr3 gci) cG (n c')
+    (Subclass (Exists role _) _) -> foldM (cr4 gci) cG (r role)
+    (Subclass c' _)              -> foldM (cr1 gci) cG (n c')
 
 iterateGCI :: CGraph -> [GCI] -> Completion
 iterateGCI = foldM iterateNodes
-
--- Functions ensuring the rules are applied exhaustively
-
---cr1 :: GCI -> CGraph -> Concept -> CGraph
---cr2 :: GCI -> CGraph -> Concept -> CGraph
---cr3 :: GCI -> CGraph -> Concept -> CGraph
---cr4 :: GCI -> CGraph -> (Concept, Concept) -> CGraph
---
---iterateNodes :: GCI -> CGraph -> CGraph
------iterateNodes gci@(Subclass (Name c) (Name d)) cGraph = foldr (cr2 gci) cGraph allNodes
------iterateNodes gci@(Subclass (Name c) (Name d)) cGraph = foldr (cr3 gci) cGraph allNodes
---iterateNodes gci@(Subclass (Exists role d') e) (CGraph s r) = foldr (cr4 gci) cGraph (r role)
---iterateNodes gci@(Subclass c d) cGraph = foldr (cr1 gci) cGraph allNodes
-
---computeCGraph :: TBox -> CGraph
---computeCGraph TBox g:gs cs rs
---         =
---
---
---
---
---
---
---applyRules :: CGraph -> GCI -> CGraph
---applyRules CGraph
