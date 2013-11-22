@@ -9,6 +9,7 @@ import Data.Set ( Set
 import Data.Text (pack)
 
 import Hazel.Core
+import Hazel.Normalize (normalize)
 import Hazel.Completion (Node)
 
 toDummy :: GCI -> Concept
@@ -136,14 +137,39 @@ signature3b5c = ( fromList [ name
                 , fromList [role]
                 )
 
-cr1_gci :: GCI
-cr1_gci = Subclass top name
+cr1Gci :: GCI
+cr1Gci = Subclass top name
 
-cr2_gci :: GCI
-cr2_gci = Subclass conjunction (Name "Human")
+cr2Gci :: GCI
+cr2Gci = Subclass conjunction (Name "Human")
 
-cr3_gci :: GCI
-cr3_gci = Subclass name existential
+cr3Gci :: GCI
+cr3Gci = Subclass name existential
 
-cr4_gci :: GCI
-cr4_gci = Subclass existential (Name "Father")
+cr4Gci :: GCI
+cr4Gci = Subclass existential (Name "Father")
+
+a :: Concept
+a = Name "A"
+
+b :: Concept
+b = Name "B"
+
+c :: Concept
+c = Name "C"
+
+d :: Concept
+d = Name "D"
+
+r :: Role
+r = Role "r"
+
+exercise38 :: [GCI]
+exercise38 =
+    [ Subclass a $ b `And` Exists r c
+    , Subclass (b `And` Exists r b) (c `And` d)
+    , Subclass c $ Exists r a `And` b
+    , Subclass (Exists r (Exists r b) `And` d) $ Exists r $ And a b
+    ]
+
+normalized38 = normalize exercise38
