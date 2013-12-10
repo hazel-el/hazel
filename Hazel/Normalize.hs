@@ -1,20 +1,11 @@
--- TODO fill in header
 {- |
-* Module      :  Hazel.Normalize
+Module      :  Hazel.Normalize
+Description :  Normalization of TBoxes as preprocessing for completion algorithm
+License     :  GPL3
+Stability   :  experimental
+Portability :  unknown
 
-* Description :  Normalization of TBoxes as preprocessing for completion algorithm
-
-* Copyright   :  (c) <Authors or Affiliations>
-
-* License     :  <license>
-
-* Maintainer  :  <email>
-
-* Stability   :  experimental
-
-* Portability :  portable | non-portable (<reason>)
-
-* <module description starting at first column>
+TBox normalization for EL
 -}
 module Hazel.Normalize ( normalize
                        , normalizeGCI
