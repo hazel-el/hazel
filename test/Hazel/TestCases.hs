@@ -174,3 +174,9 @@ exercise38 =
 
 normalized38 :: TBox
 normalized38 = normalize exercise38
+
+topTest :: [GCI]
+topTest =
+    [ Subclass Top a
+    , Subclass a b
+    ]
