@@ -172,4 +172,5 @@ exercise38 =
     , Subclass (Exists r (Exists r b) `And` d) $ Exists r $ And a b
     ]
 
+normalized38 :: TBox
 normalized38 = normalize exercise38
