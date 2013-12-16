@@ -79,7 +79,7 @@ spec = do
       it "Subsumees of D should be A, C, D" $
         fromList (getNodes cg38 d `intersect` [a, b, c, d]) `shouldBe` fromList [a, c, d]
     describe "Top Test" $ do
-      let compTop = iterateGCI (initGraph [a, b]) topTest
+      let compTop = iterateGCI [Top, a, b] (initGraph [a, b]) topTest
           (_, CState cnodes _) = runState compTop emptyState
       it "all nodes including top should have changed" $
           fromList cnodes `shouldBe` fromList [a, b, Top]

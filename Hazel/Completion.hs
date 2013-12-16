@@ -108,21 +108,25 @@ emptyState = CState [] []
 
 complete :: TBox -> CGraph
 complete (TBox gcis cs _) =
-    go . initGraph $ elems cs
+    go (nub $ Top : elems cs) (initGraph $ elems cs)
   where
-    go :: CGraph -> CGraph
-    go graph
+    go :: [Node] -> CGraph -> CGraph
+    go cn graph
         | state' == emptyState = graph'
-        | otherwise            = go graph'
+        | otherwise            = go cn' graph'
       where
-        (graph', state') = runState (iterateGCI graph gcis) emptyState
+        (graph', state'@(CState cn' _)) =
+            runState (iterateGCI cn graph gcis) emptyState
 
-iterateNodes :: CGraph -> GCI -> Completion
-iterateNodes cG@(CGraph n r) gci = case gci of
-    (Subclass (And c d) _)       -> foldM (cr2 gci) cG (n c `intersect` n d)
-    (Subclass c' (Exists _ _))   -> foldM (cr3 gci) cG (n c')
-    (Subclass (Exists role _) _) -> foldM (cr4 gci) cG (r role)
-    (Subclass c' _)              -> foldM (cr1 gci) cG (n c')
+iterateNodes :: [Node] -> CGraph -> GCI -> Completion
+iterateNodes cn cG@(CGraph n r) gci = case gci of
+    (Subclass (And c d) _)       ->
+        foldM (cr2 gci) cG $ changed $ n c `intersect` n d
+    (Subclass c' (Exists _ _))   -> foldM (cr3 gci) cG $ changed $ n c'
+    (Subclass (Exists role _) _) -> foldM (cr4 gci) cG $ r role
+    (Subclass c' _)              -> foldM (cr1 gci) cG $ changed $ n c'
+  where
+    changed = intersect cn
 
-iterateGCI :: CGraph -> [GCI] -> Completion
-iterateGCI = foldM iterateNodes
+iterateGCI :: [Node] -> CGraph -> [GCI] -> Completion
+iterateGCI cn = foldM (iterateNodes cn)
