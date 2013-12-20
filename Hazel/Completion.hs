@@ -16,9 +16,28 @@ import Data.List
 import Data.Set (elems)
 import Hazel.Core
 
+
+-- data structure for completion graph
+-- getNodes models the (inverse) function S from completion algorithm
+-- getRoles models the (inverse) function R from completion algorithm
 data CGraph = CGraph { getNodes :: Concept -> [Node]
                      , getRoles :: Role -> [CEdge]
                      }
+
+-- data structure for factorized neighborhood of concepts
+-- according to the PhD thesis of Dr. Suntisrivaraporn (on page 69)
+data CNeighbors = CNeighbors { getUpper :: Concept -> [Concept]
+			     , getEquivalent :: Concept -> [Concept]
+			     , getLower :: Concept -> [Concept]
+			     }
+
+-- function to extract the concept hierarchy from the completion graph
+-- according to the PhD thesis of Dr. Suntisrivaraporn (on page 69)
+-- this just computes the reflexive-transitive reduction
+-- of the factorization w.r.t. concept equivalence
+extractHierarchy :: CGraph -> CHierarchy
+extractHierarchy = undefined
+
 
 type Node = Concept
 type CEdge = (Concept, Concept)
