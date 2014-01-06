@@ -13,6 +13,7 @@ library
   exposed-modules:     Hazel.Completion
                      , Hazel.Core
                      , Hazel.Normalize
+                     , Hazel.Parser
                      , Hazel.Parser.OWL.Functional
   other-modules:       Hazel.Parser.Utils
                      , Hazel.Parser.OWL.BCP47
@@ -25,6 +26,17 @@ library
                      , hashable ==1.2.*
                      , mtl ==2.1.*
                      , attoparsec ==0.10.*
+                     , conduit ==1.0.*
+                     , attoparsec-conduit ==1.0.*
+
+
+executable hazel
+  ghc-options:       -Wall -Werror
+  hs-source-dirs:    cli
+  main-is:           Main.hs
+  build-depends:     base ==4.6.*
+                   , directory ==1.2.*
+                   , hazel
 
 Test-Suite test-hazel
   ghc-options:     -Wall -Werror
