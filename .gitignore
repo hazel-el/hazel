@@ -2,3 +2,7 @@
 *~
 .hsenv
 dist/
+*.aux
+*.hp
+*.prof
+*.ps
