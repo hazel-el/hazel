@@ -2,7 +2,7 @@
 
 {- |
 Module      :  Hazel.Parser.OWL.RFC3987
-Copyright   :  (c) 2013, 2013 Maximilian Marx
+Copyright   :  (c) 2013, 2014 Maximilian Marx
 License     :  GPL-3
 Maintainer  :  Maximilian Marx <mmarx@wh2.tu-dresden.de>
 Stability   :  experimental
