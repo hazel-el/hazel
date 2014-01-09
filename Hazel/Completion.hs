@@ -1,7 +1,7 @@
 {- |
 Module      :  Hazel.Normalize
 Description :  Functions for reasoning according to completion algorithm
-License     :  GPL3
+License     :  GPL-3
 Stability   :  experimental
 Portability :  unknown
 

@@ -1,4 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
+
+{- |
+Module      :  Hazel.Parser
+Copyright   :  (c) 2014 Maximilian Marx
+License     :  GPL-3
+Maintainer  :  Maximilian Marx <mmarx@wh2.tu-dresden.de>
+Stability   :  experimental
+Portability :  unknown
+
+Front-end module for the OWL2 Functional-Style parser
+-}
 module Hazel.Parser ( ontologyDocument
                     , parseFile
                     ) where

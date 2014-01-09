@@ -2,8 +2,8 @@
 
 {- |
 Module      :  Hazel.Parser.OWL.RFC5234
-Copyright   :  (c) 2013 Maximilian Marx
-License     :  GPL3
+Copyright   :  (c) 2013, 2014 Maximilian Marx
+License     :  GPL-3
 Maintainer  :  Maximilian Marx <mmarx@wh2.tu-dresden.de>
 Stability   :  experimental
 Portability :  unknown

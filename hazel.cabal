@@ -2,7 +2,7 @@ name:                hazel
 version:             0.1.0.0
 synopsis: Reasoner for the EL description logic
 description:
-license: GPL3
+license: GPL-3
 license-file:        LICENSE
 author: Felix Distel, Francesco Kriegel, Maximilian Marx
 build-type:          Simple

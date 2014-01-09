@@ -1,7 +1,7 @@
 {- |
 Module      :  Hazel.Normalize
 Description :  Normalization of TBoxes as preprocessing for completion algorithm
-License     :  GPL3
+License     :  GPL-3
 Stability   :  experimental
 Portability :  unknown
 
