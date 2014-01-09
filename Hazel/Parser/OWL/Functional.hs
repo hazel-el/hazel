@@ -330,8 +330,8 @@ stringLiteralWithLanguage :: Parser Literal
 stringLiteralWithLanguage = StringLiteralWithLanguage <$> quotedString
                                                       <*> languageTag
 
-data InverseObjectProperty = InverseObjectProperty IRI
-                           deriving Show
+newtype InverseObjectProperty = InverseObjectProperty IRI
+                              deriving Show
 type ObjectProperty = IRI
 type ObjectPropertyExpression = Either ObjectProperty InverseObjectProperty
 
@@ -540,11 +540,11 @@ dataHasValue = bracketed "DataHasValue" $
                             <*> literal
 
 dataCardinality' :: Text
-                      -> (Integer
-                          -> DataProperty
-                          -> Maybe DataRange
-                          -> ClassExpression)
-                      -> Parser ClassExpression
+                    -> (Integer
+                        -> DataProperty
+                        -> Maybe DataRange
+                        -> ClassExpression)
+                    -> Parser ClassExpression
 dataCardinality' tag ctor = cardinality' tag ctor
                             dataPropertyExpression dataRange
 
@@ -594,14 +594,14 @@ data ClassAxiom = SubClassOf [Annotation] SubClassExpression SuperClassExpressio
                 | DisjointUnion [Annotation] Class DisjointClassExpressions
                 deriving Show
 
-data SubClassExpression = SubClassExpression ClassExpression
-                          deriving Show
+newtype SubClassExpression = SubClassExpression ClassExpression
+                           deriving Show
 
 subClassExpression :: Parser SubClassExpression
 subClassExpression = SubClassExpression <$> classExpression
 
-data SuperClassExpression = SuperClassExpression ClassExpression
-                            deriving Show
+newtype SuperClassExpression = SuperClassExpression ClassExpression
+                             deriving Show
 
 superClassExpression :: Parser SuperClassExpression
 superClassExpression = SuperClassExpression <$> classExpression
@@ -661,15 +661,16 @@ data ObjectPropertyAxiom = SubObjectPropertyOf [Annotation] SubObjectPropertyExp
                          | TransitiveObjectProperty [Annotation] ObjectPropertyExpression
                          deriving Show
 
-data SubObjectPropertyExpression = SubObjectPropertyExpression ObjectPropertyExpression                                 | SubObjectPropertyExpressionChain PropertyExpressionChain
+data SubObjectPropertyExpression = SubObjectPropertyExpression ObjectPropertyExpression
+                                 | SubObjectPropertyExpressionChain PropertyExpressionChain
                                  deriving Show
 
 subObjectPropertyExpression :: Parser SubObjectPropertyExpression
 subObjectPropertyExpression = SubObjectPropertyExpression <$> objectPropertyExpression
                               <|> SubObjectPropertyExpressionChain <$> propertyExpressionChain
 
-data SuperObjectPropertyExpression = SuperObjectPropertyExpression ObjectPropertyExpression
-                                   deriving Show
+newtype SuperObjectPropertyExpression = SuperObjectPropertyExpression ObjectPropertyExpression
+                                      deriving Show
 
 superObjectPropertyExpression :: Parser SuperObjectPropertyExpression
 superObjectPropertyExpression = SuperObjectPropertyExpression <$> objectPropertyExpression
@@ -690,13 +691,13 @@ subObjectPropertyOf = bracketed "SubObjectPropertyOf" $
                                           <*> superObjectPropertyExpression
 
 properties' :: Text
-                     -> ([Annotation]
-                         -> a
-                         -> a
-                         -> [a]
-                         -> b)
-                     -> Parser a
-                     -> Parser b
+               -> ([Annotation]
+                   -> a
+                   -> a
+                   -> [a]
+                   -> b)
+               -> Parser a
+               -> Parser b
 properties' tag ctor p = bracketed tag $
                          ctor <$> axiomAnnotations
                               <*> p
@@ -792,14 +793,14 @@ data DataPropertyAxiom = SubDataPropertyOf [Annotation] SubDataPropertyExpressio
                        | FunctionalDataProperty [Annotation] DataProperty
                        deriving Show
 
-data SubDataPropertyExpression = SubDataPropertyExpression DataProperty
-                               deriving Show
+newtype SubDataPropertyExpression = SubDataPropertyExpression DataProperty
+                                  deriving Show
 
 subDataPropertyExpression :: Parser SubDataPropertyExpression
 subDataPropertyExpression = SubDataPropertyExpression <$> dataPropertyExpression
 
-data SuperDataPropertyExpression = SuperDataPropertyExpression DataProperty
-                                 deriving Show
+newtype SuperDataPropertyExpression = SuperDataPropertyExpression DataProperty
+                                    deriving Show
 
 superDataPropertyExpression :: Parser SuperDataPropertyExpression
 superDataPropertyExpression = SuperDataPropertyExpression <$> dataPropertyExpression
@@ -873,14 +874,14 @@ data Assertion = SameIndividual [Annotation] Individual Individual [Individual]
                | NegativeDataPropertyAssertion [Annotation] DataProperty SourceIndividual TargetValue
                deriving Show
 
-data SourceIndividual = SourceIndividual Individual
-                      deriving Show
+newtype SourceIndividual = SourceIndividual Individual
+                         deriving Show
 
 sourceIndividual :: Parser SourceIndividual
 sourceIndividual = SourceIndividual <$> individual
 
-data TargetIndividual = TargetIndividual Individual
-                      deriving Show
+newtype TargetIndividual = TargetIndividual Individual
+                         deriving Show
 
 targetIndividual :: Parser TargetIndividual
 targetIndividual = TargetIndividual <$> individual
