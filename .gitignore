@@ -4,6 +4,7 @@
 .hsenv_*/
 hsenv.log
 dist/
+dist_*/
 *.aux
 *.hp
 *.prof
