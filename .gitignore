@@ -1,6 +1,8 @@
 #*#
 *~
-.hsenv
+.hsenv/
+.hsenv_*/
+hsenv.log
 dist/
 *.aux
 *.hp
