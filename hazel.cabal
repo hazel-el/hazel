@@ -18,6 +18,7 @@ library
                      , Hazel.Parser
                      , Hazel.Parser.OWL.Functional
   other-modules:       Hazel.Parser.Utils
+                     , Hazel.Parser.OWL.AST
                      , Hazel.Parser.OWL.BCP47
                      , Hazel.Parser.OWL.RFC3987
                      , Hazel.Parser.OWL.RFC5234
