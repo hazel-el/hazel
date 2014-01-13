@@ -64,31 +64,45 @@ showIRI (RelativeIRI relativePart query fragment) = T.concat [ relativePart
 instance Show IRI where
   show = unpack . showIRI
 
-ucsChar :: Parser Char
-ucsChar = satisfy $ inClass $ concat [ "\xA0-\xD7FF"
-                                     , "\xF900-\xFDCF"
-                                     , "\xFDF0-\xFFEF"
-                                     , "\x10000-\x1FFFD"
-                                     , "\x20000-\x2FFFD"
-                                     , "\x30000-\x3FFFD"
-                                     , "\x40000-\x4FFFD"
-                                     , "\x50000-\x5FFFD"
-                                     , "\x60000-\x6FFFD"
-                                     , "\x70000-\x7FFFD"
-                                     , "\x80000-\x8FFFD"
-                                     , "\x90000-\x9FFFD"
-                                     , "\xA0000-\xAFFFD"
-                                     , "\xB0000-\xBFFFD"
-                                     , "\xC0000-\xCFFFD"
-                                     , "\xD0000-\xDFFFD"
-                                     , "\xE1000-\xEFFFD"
-                                     ]
+isUcsChar :: Char -> Bool
+isUcsChar = inClass $ concat [ "\xA0-\xD7FF"
+                             , "\xF900-\xFDCF"
+                             , "\xFDF0-\xFFEF"
+                             , "\x10000-\x1FFFD"
+                             , "\x20000-\x2FFFD"
+                             , "\x30000-\x3FFFD"
+                             , "\x40000-\x4FFFD"
+                             , "\x50000-\x5FFFD"
+                             , "\x60000-\x6FFFD"
+                             , "\x70000-\x7FFFD"
+                             , "\x80000-\x8FFFD"
+                             , "\x90000-\x9FFFD"
+                             , "\xA0000-\xAFFFD"
+                             , "\xB0000-\xBFFFD"
+                             , "\xC0000-\xCFFFD"
+                             , "\xD0000-\xDFFFD"
+                             , "\xE1000-\xEFFFD"
+                             ]
 
 pctEncoded :: Parser Text
 pctEncoded = pack <$> ((:) <$> char '%' <*> count 2 hexDig)
 
+isSubDelim :: Char -> Bool
+isSubDelim '!' = True
+isSubDelim '$' = True
+isSubDelim '&' = True
+isSubDelim '\'' = True
+isSubDelim '(' = True
+isSubDelim ')' = True
+isSubDelim '*' = True
+isSubDelim '+' = True
+isSubDelim ',' = True
+isSubDelim ';' = True
+isSubDelim '=' = True
+isSubDelim _ = False
+
 subDelims :: Parser Char
-subDelims = satisfy $ inClass "!$&'()*+,;="
+subDelims = satisfy isSubDelim
 
 iPrivate :: Parser Char
 iPrivate = satisfy $ inClass $ concat [ "\xE000-\xF8FF"
@@ -101,17 +115,29 @@ unreserved = alpha
              <|> digit
              <|> satisfy (inClass "._~-")
 
+isIUnreserved :: Char -> Bool
+isIUnreserved c = ('a' <= c && c <= 'z')
+                  || ('A' <= c && c <= 'Z')
+                  || ('0' <= c && c <= '9')
+                  || isOther c
+  where isOther '.' = True
+        isOther '_' = True
+        isOther '~' = True
+        isOther '-' = True
+        isOther d = isUcsChar d
+        {-# INLINE isOther #-}
+
 iUnreserved :: Parser Char
-iUnreserved = alpha
-              <|> digit
-              <|> satisfy (inClass "._~-")
-              <|> ucsChar
+iUnreserved = satisfy isIUnreserved
 
 ipChar :: Parser Text
 ipChar = singleton <$> iUnreserved
          <|> pctEncoded
          <|> singleton <$> subDelims
-         <|> singleton <$> satisfy (inClass ":@")
+         <|> singleton <$> satisfy colonAt
+  where colonAt ':' = True
+        colonAt '@' = True
+        colonAt _ = False
 
 scheme :: Parser Text
 scheme = pack <$> ((:) <$> alpha <*> many' (alpha <|> digit <|> satisfy (inClass "+.-")))
