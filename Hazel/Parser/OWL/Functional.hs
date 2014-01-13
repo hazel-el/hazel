@@ -17,14 +17,12 @@ import Control.Applicative ( (<|>)
                            , (<$>)
                            , (<*>)
                            )
-import Data.Text ( Text
-                 , pack
-                 )
+import Data.Text (Text)
 import Data.Attoparsec.Text
 
 import Hazel.Parser.Utils ((<<))
 import Hazel.Parser.OWL.BCP47 (langTag)
-import Hazel.Parser.OWL.RFC3987 (iriReference)
+import Hazel.Parser.OWL.RFC3987 (iriReference, showIRI)
 import Hazel.Parser.OWL.SPARQL ( blankNodeLabel
                                , pnameNS
                                , pnameLN
@@ -118,7 +116,7 @@ languageTag :: Parser LanguageTag
 languageTag = "@" .*> langTag << skipOrDelimiter
 
 fullIRI :: Parser IRI
-fullIRI = pack . show <$> "<" .*> iriReference <*. ">" << skipOrDelimiter
+fullIRI = showIRI <$> "<" .*> iriReference <*. ">" << skipSpaceOrComment
 
 nodeID :: Parser NodeID
 nodeID = blankNodeLabel << skipOrDelimiter

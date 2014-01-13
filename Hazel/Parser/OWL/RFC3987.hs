@@ -15,6 +15,7 @@ module Hazel.Parser.OWL.RFC3987 ( IRI (..)
                                 , iri
                                 , iRelativeRef
                                 , iriReference
+                                , showIRI
                                 ) where
 
 import Control.Applicative ( (<|>)
@@ -48,19 +49,20 @@ data IRI = AbsoluteIRI { iriScheme :: Text          -- ^ scheme
                        , iriIFragment :: Maybe Text -- ^ ifragment
                        }
 
-queryFragment :: IRI -> [Text]
-queryFragment i = [ maybe "" (cons '?') $ iriIQuery i
-                  , maybe "" (cons '#') $ iriIFragment i
-                  ]
-
+showIRI :: IRI -> Text
+showIRI (AbsoluteIRI ischeme hierPart query fragment) = T.concat [ ischeme
+                                                                 , ":"
+                                                                 , hierPart
+                                                                 , maybe "" (cons '?') query
+                                                                 , maybe "" (cons '#') fragment
+                                                                 ]
+showIRI (RelativeIRI relativePart query fragment) = T.concat [ relativePart
+                                                             , maybe "" (cons '?') query
+                                                             , maybe "" (cons '#') fragment
+                                                             ]
 
 instance Show IRI where
-  show i@(AbsoluteIRI _ _ _ _) = concatMap unpack $ [ iriScheme i
-                                                    , ":"
-                                                    , iriIHierPart i
-                                                    ] ++ (queryFragment i)
-  show i@(RelativeIRI _ _ _) = concatMap unpack $
-                               (iriIRelativePart i):(queryFragment i)
+  show = unpack . showIRI
 
 ucsChar :: Parser Char
 ucsChar = satisfy $ inClass $ concat [ "\xA0-\xD7FF"
