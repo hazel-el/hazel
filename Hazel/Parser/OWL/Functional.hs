@@ -124,7 +124,11 @@ abbreviatedIRI :: Parser IRI
 abbreviatedIRI = pnameLN << skipOrDelimiter
 
 iri :: Parser IRI
-iri = fullIRI <|> abbreviatedIRI
+iri = do
+  c <- peekChar'
+  case c of
+    '<' -> fullIRI
+    _ -> abbreviatedIRI
 
 ontologyDocument :: Parser OntologyDocument
 ontologyDocument = OntologyDocument <$> many' prefixDeclaration
@@ -459,24 +463,29 @@ dataExactCardinality = dataCardinality' "DataExactCardinality"
                        DataExactCardinality
 
 classExpression :: Parser ClassExpression
-classExpression = class''
-                  <|> objectIntersectionOf
-                  <|> objectUnionOf
-                  <|> objectComplementOf
-                  <|> objectOneOf
-                  <|> objectSomeValuesFrom
-                  <|> objectAllValuesFrom
-                  <|> objectHasValue
-                  <|> objectHasSelf
-                  <|> objectMinCardinality
-                  <|> objectMaxCardinality
-                  <|> objectExactCardinality
-                  <|> dataSomeValuesFrom
-                  <|> dataAllValuesFrom
-                  <|> dataHasValue
-                  <|> dataMinCardinality
-                  <|> dataMaxCardinality
-                  <|> dataExactCardinality
+classExpression = do
+  c <- peekChar'
+  case c of
+    'O' -> objectIntersectionOf
+           <|> objectUnionOf
+           <|> objectComplementOf
+           <|> objectOneOf
+           <|> objectSomeValuesFrom
+           <|> objectAllValuesFrom
+           <|> objectHasValue
+           <|> objectHasSelf
+           <|> objectMinCardinality
+           <|> objectMaxCardinality
+           <|> objectExactCardinality
+           <|> class''
+    'D' -> dataSomeValuesFrom
+           <|> dataAllValuesFrom
+           <|> dataHasValue
+           <|> dataMinCardinality
+           <|> dataMaxCardinality
+           <|> dataExactCardinality
+           <|> class''
+    _ -> class''
 
 subClassExpression :: Parser SubClassExpression
 subClassExpression = SubClassExpression <$> classExpression
