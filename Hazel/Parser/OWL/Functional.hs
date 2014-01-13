@@ -91,13 +91,10 @@ mustSkip = do
 (<?.) :: Parser a -> Text -> Parser a
 (<?.) p str = (p << skipSpaceOrComment) <*. str
 
-(.!>) :: Text -> Parser a -> Parser a
-(.!>) str p = str .*> (skipOrDelimiter >> p)
-
-infixr 4 <?., .?>, .!>
+infixr 4 <?., .?>
 
 bracketed :: Text -> Parser a -> Parser a
-bracketed tag p = tag .!> ("(" .?> p <?. ")") << skipSpaceOrComment
+bracketed tag p = tag .?> ("(" .?> p <?. ")") << skipSpaceOrComment
 
 nonNegativeInteger :: Parser Integer
 nonNegativeInteger = decimal << skipOrDelimiter
