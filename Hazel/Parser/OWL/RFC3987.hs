@@ -146,7 +146,7 @@ iUserInfo :: Parser Text
 iUserInfo = T.concat <$> many' (singleton <$> iUnreserved
                                 <|> pctEncoded
                                 <|> singleton <$> subDelims
-                                <|> singleton <$> satisfy (inClass ":"))
+                                <|> singleton <$> char ':')
 
 port :: Parser Text
 port = pack <$> many' digit
