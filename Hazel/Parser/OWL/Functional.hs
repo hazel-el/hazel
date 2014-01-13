@@ -43,13 +43,13 @@ isWhiteSpaceOrStartOfComment c = isWhiteSpace c
 whitespace :: Parser ()
 whitespace = skipWhile isWhiteSpace
 
-comment :: Parser ()
-comment = "#" .*> skipWhile (not . isEOL)
 isEOL :: Char -> Bool
 isEOL '\r' = True
 isEOL '\n' = True
 isEOL _ = False
 
+comment :: Parser ()
+comment = "#" .*> skipWhile (not . isEOL)
 
 isDelimiter :: Char -> Bool
 isDelimiter '=' = True
