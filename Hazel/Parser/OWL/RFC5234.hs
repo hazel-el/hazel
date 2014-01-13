@@ -18,12 +18,12 @@ module Hazel.Parser.OWL.RFC5234 ( alpha
 import Data.Char (isHexDigit)
 import Data.Attoparsec.Text ( Parser
                             , satisfy
-                            , inClass
                             )
 
 -- | Parser for ALPHA
 alpha :: Parser Char
-alpha = satisfy $ inClass "a-zA-Z"
+alpha = satisfy isAlpha
+  where isAlpha c = ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
 
 -- | Parser for HEXDIG
 hexDig :: Parser Char

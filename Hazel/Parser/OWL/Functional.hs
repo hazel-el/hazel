@@ -17,9 +17,6 @@ import Control.Applicative ( (<|>)
                            , (<$>)
                            , (<*>)
                            )
-import Control.Arrow ( (&&&)
-                     , (>>>)
-                     )
 import Data.Text ( Text
                  , pack
                  )
@@ -35,19 +32,36 @@ import Hazel.Parser.OWL.SPARQL ( blankNodeLabel
 import Hazel.Parser.OWL.AST
 
 isWhiteSpace :: Char -> Bool
-isWhiteSpace = inClass " \t\r\n"
+isWhiteSpace ' ' = True
+isWhiteSpace '\t' = True
+isWhiteSpace '\r' = True
+isWhiteSpace '\n' = True
+isWhiteSpace _ = False
 
 isWhiteSpaceOrStartOfComment :: Char -> Bool
-isWhiteSpaceOrStartOfComment = isWhiteSpace &&& ('#'==) >>> uncurry (||)
+isWhiteSpaceOrStartOfComment '#' = True
+isWhiteSpaceOrStartOfComment c = isWhiteSpace c
 
 whitespace :: Parser ()
 whitespace = skipWhile isWhiteSpace
 
 comment :: Parser ()
-comment = "#" .*> skipWhile (not . inClass "\r\n")
+comment = "#" .*> skipWhile (not . isEOL)
+isEOL :: Char -> Bool
+isEOL '\r' = True
+isEOL '\n' = True
+isEOL _ = False
+
 
 isDelimiter :: Char -> Bool
-isDelimiter = inClass "=()<>@^"
+isDelimiter '=' = True
+isDelimiter '(' = True
+isDelimiter ')' = True
+isDelimiter '<' = True
+isDelimiter '>' = True
+isDelimiter '@' = True
+isDelimiter '^' = True
+isDelimiter _ = False
 
 skipSpaceOrComment :: Parser ()
 skipSpaceOrComment = do
