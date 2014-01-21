@@ -1,0 +1,29 @@
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+
+# these are the axioms that should be in there:
+# A SubClassOf B and (r some C)
+# B and (r some B) SubClassOf C and D
+# C SubClassOf (r some A) and B
+# r some (r some B) and D SubClassOf r some (A and B)
+
+Ontology(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2>
+
+Declaration(Class(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#A>))
+
+SubClassOf(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#A> ObjectIntersectionOf(ObjectSomeValuesFrom(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#r> <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#C>) <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#B>))
+
+Declaration(Class(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#B>))
+Declaration(Class(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#C>))
+SubClassOf(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#C> ObjectIntersectionOf(ObjectSomeValuesFrom(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#r> <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#A>) <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#B>))
+
+Declaration(Class(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#D>))
+Declaration(ObjectProperty(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#r>))
+
+SubClassOf(ObjectIntersectionOf(ObjectSomeValuesFrom(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#r> ObjectSomeValuesFrom(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#r> <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#B>)) <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#D>) ObjectSomeValuesFrom(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#r> ObjectIntersectionOf(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#B> <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#A>)))
+
+SubClassOf(ObjectIntersectionOf(ObjectSomeValuesFrom(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#r> <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#B>) <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#B>) ObjectIntersectionOf(<http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#D> <http://www.semanticweb.org/felix/ontologies/2014/0/untitled-ontology-2#C>))
+)
