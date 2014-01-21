@@ -1,0 +1,134 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+\DeclareMathOperator{\ran}{ran}
+\DeclareMathOperator{\dom}{dom}
+\DeclareMathOperator{\transitive}{transitive}
+\DeclareMathOperator{\reflexive}{reflexive}
+
+\title{OWL 2 EL vs.\ standard DL Terminology Cheatsheet}
+\author{Felix Distel} 
+\begin{document}
+
+\maketitle
+
+The tables in this document aim at making it easier to adapt results from
+the DL community for usage in an OWL 2 EL reasoner. The basic terminology is
+detailed in Table~\ref{table:general}, the constructors used in OWL 2 EL can be
+found in Table~\ref{table:constructors}, the axioms in
+Table~\ref{table:axioms}.
+
+Three points should be mentioned that should be kept it mind when translating
+classical $\mathcal{EL}$ reasoning methods such as
+\cite{BaaderBrandtLutz-IJCAI-05,BaaderEtAl-OWLED08DC,Sunt-09} to OWL 2 EL.
+\begin{itemize}
+  \item Only little literature can be found on self-restrictions in
+    $\mathcal{EL}$; one example is \cite{carral2013towards}, but that is not a
+    completion-based algorithm.
+  \item Features for concrete domains are usually functional, whereas the
+    corresponding data properties from OWL can map individuals to several data
+    literals.
+  \item I have not yet found DL literature about the has-key-axioms.
+\end{itemize}
+
+\begin{table}
+  \caption{General Notions\label{table:general}}
+  \begin{center}
+    \begin{tabular}{@{}ll@{}}
+      \toprule
+      OWL name & DL equivalent \\
+      \midrule
+      class & concept \\
+      class expression & concept description \\
+      datatype & concrete domain, but can be treated as unary predicate \\
+      data range & predicate\footnotemark[1]\\
+      object property & role \\
+      data property & ---\footnotemark[2]\\
+      annotation property & --- \\
+      individual & individual \\
+      literal & concrete domain element \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\begin{table}
+  \caption{Constructors supported by OWL 2 EL\label{table:constructors}}
+  \begin{center}
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      OWL name & DL equivalent & DL syntax \\
+      \midrule
+      ObjectSomeValuesFrom & existential restriction & $\exists r. C$ \\
+      DataSomeValuesFrom & ---\footnotemark[3]  & --- \\
+      ObjectHasValue & --- & $\exists r. \{a\}$ \\
+      DataHasValue & ---\footnotemark[3] & --- \\
+      ObjectHasSelf & self restriction & $\exists r.\mathsf{Self}$ \\
+      ObjectOneOf & nominals\footnotemark[4] & $\{a\}$ \\
+      DataOneOf & sets of ``literal'' predicates & $(\in \{l_1, \dots, l_n\})$ \\
+      ObjectIntersectionOf & conjunction & $\sqcap$ \\
+      DataIntersectionOf & conjunction of predicates & $p_1 \land p_2$ \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\begin{table}
+  \caption{Axioms supported by OWL 2 EL\label{table:axioms}}
+  \begin{center}
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      OWL name & DL equivalent & DL syntax \\
+      \midrule
+      SubClassOf & concept inclusion & $C \sqsubseteq D$ \\
+      EquivalentClasses & concept equivalence/definition & $C \equiv D$ \\
+      DisjointClasses & concept disjointness & $C \sqcap D \sqsubseteq \bot$ \\
+      \addlinespace
+      SubObjectPropertyOf & role hierarchy & $r \sqsubseteq s$ \\
+      SubObjectPropertyOf + ObjectPropertyChain & role inclusion &
+        $r_1 \circ \cdots \circ r_n \sqsubseteq s$ \\
+      EquivalentObjectProperties & role equivalence & $r \equiv s$ \\
+      TransitiveObjectProperty & transitivity & $\transitive(r)$ \\
+      ReflexiveObjectProperty & reflexivity & $\reflexive(r)$ \\
+      ObjectPropertyDomain & domain restriction & $\dom(r) \sqsubseteq C$ \\
+      ObjectPropertyRange & range restriction & $\ran(r) \sqsubseteq C$ \\
+      \addlinespace
+      SubDataPropertyOf & ---\footnotemark[3] & --- \\
+      EquivalentDataProperties & ---\footnotemark[3] & --- \\
+      DataPropertyDomain & ---\footnotemark[3] & --- \\
+      DataPropertyRange & ---\footnotemark[3] & --- \\
+      \addlinespace
+      SameIndividual & ---\footnotemark[5] & $\{a\} \equiv \{b\}$ \\
+      DifferentIndividuals & ---\footnotemark[5] &
+        $\{a\} \sqcap \{b\} \sqsubseteq \bot$ \\
+      ClassAssertion & concept assertion & $a \colon C$ \\
+      ObjectPropertyAssertion & role assertion & $(a, b) \colon r$ \\
+      DataPropertyAssertion & ---? & --- \\
+      NegativeObjectPropertyAssertion, & --- & --- \\
+      NegativeDataPropertyAssertion & --- & --- \\
+      FunctionalDataProperty & ---\footnotemark[3] & --- \\
+      HasKey & --- & --- \\
+      \bottomrule
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\footnotetext[1]{Currently, only unary predicates are supported by OWL.} 
+\footnotetext[2]{This corresponds roughly to DL features, except it is not
+  necessarily functional.}
+\footnotetext[3]{These axioms or constructors do not have an exact equivalent
+  in classical DL. The need for them arises since data properties, unlike
+  features in concrete domains are not necessarily functional.}
+\footnotetext[4]{OWL 2 EL only allows a single nominal, not a set of nominals.}
+\footnotetext[5]{These are needed, since OWL 2 does not make the unique name
+  assumption}
+
+
+\bibliographystyle{plain}
+\bibliography{cheatsheet}
+
+\end{document}

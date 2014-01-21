@@ -1,7 +1,7 @@
 {- |
 Module      :  Hazel.Core
 Description :  Provides core functionality for EL Reasoner "Hazel"
-License     :  GPL3
+License     :  GPL-3
 Stability   :  experimental
 Portability :  unknown
 

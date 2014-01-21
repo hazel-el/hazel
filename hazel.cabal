@@ -2,7 +2,7 @@ name:                hazel
 version:             0.1.0.0
 synopsis: Reasoner for the EL description logic
 description:
-license: GPL3
+license: GPL-3
 license-file:        LICENSE
 author: Felix Distel, Francesco Kriegel, Maximilian Marx
 build-type:          Simple
@@ -10,21 +10,41 @@ cabal-version:       >=1.8
 
 library
   ghc-options:       -Wall -Werror
+  extensions:        CPP
   exposed-modules:     Hazel.Completion
                      , Hazel.Core
                      , Hazel.Normalize
-  build-depends:       base ==4.6.*
+                     , Hazel.Parser
+                     , Hazel.Parser.OWL.Functional
+  other-modules:       Hazel.Parser.Utils
+                     , Hazel.Parser.OWL.BCP47
+                     , Hazel.Parser.OWL.RFC3987
+                     , Hazel.Parser.OWL.RFC5234
+                     , Hazel.Parser.OWL.SPARQL
+  build-depends:       base >=4.5.0 && <4.7
                      , containers ==0.5.*
                      , text ==0.11.*
                      , hashable ==1.2.*
                      , mtl ==2.1.*
+                     , attoparsec ==0.10.*
+                     , conduit ==1.0.*
+                     , attoparsec-conduit ==1.0.*
+
+
+executable hazel
+  ghc-options:       -Wall -Werror
+  hs-source-dirs:    cli
+  main-is:           Main.hs
+  build-depends:     base >=4.5.0 && <4.7
+                   , directory ==1.2.*
+                   , hazel
 
 Test-Suite test-hazel
   ghc-options:     -Wall -Werror
   type:            exitcode-stdio-1.0
   hs-source-dirs:  test
   main-is:         Spec.hs
-  build-depends:   base ==4.6.*
+  build-depends:   base >=4.5.0 && <4.7
                  , containers ==0.5.*
                  , text ==0.11.*
                  , hazel

@@ -1,7 +1,7 @@
 {- |
 Module      :  Hazel.Normalize
 Description :  Functions for reasoning according to completion algorithm
-License     :  GPL3
+License     :  GPL-3
 Stability   :  experimental
 Portability :  unknown
 
@@ -35,8 +35,8 @@ data CNeighbors = CNeighbors { getUpper :: Concept -> [Concept]
 -- according to the PhD thesis of Dr. Suntisrivaraporn (on page 69)
 -- this just computes the reflexive-transitive reduction
 -- of the factorization w.r.t. concept equivalence
-extractHierarchy :: CGraph -> CHierarchy
-extractHierarchy = undefined
+-- extractHierarchy :: CGraph -> CHierarchy
+-- extractHierarchy = undefined
 
 
 type Node = Concept
