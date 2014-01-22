@@ -12,6 +12,7 @@ library
   ghc-options:       -Wall -Werror
   extensions:        CPP
   exposed-modules:     Hazel.Completion
+                     , Hazel.Conversion
                      , Hazel.Core
                      , Hazel.Normalize
                      , Hazel.Parser
