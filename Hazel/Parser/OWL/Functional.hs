@@ -64,9 +64,9 @@ isDelimiter _ = False
 skipSpaceOrComment :: Parser ()
 skipSpaceOrComment = do
   whitespace
-  c <- peekChar'
-  case c of
-    '#' -> comment >> skipSpaceOrComment
+  mChar <- peekChar
+  case mChar of
+    Just '#' -> comment >> skipSpaceOrComment
     _ -> return ()
 
 skipOrDelimiter :: Parser ()
@@ -79,9 +79,9 @@ skipOrDelimiter = do
 
 mustSkip :: Parser ()
 mustSkip = do
-  c <- peekChar'
-  case isWhiteSpaceOrStartOfComment c of
-    True -> skipSpaceOrComment
+  mChar <- peekChar
+  case isWhiteSpaceOrStartOfComment <$> mChar of
+    Just True -> skipSpaceOrComment
     _ -> fail "expected whitespace or start of comment"
   <?> "mustSkip"
 
