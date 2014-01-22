@@ -11,52 +11,62 @@ Portability :  unknown
 Parser for OWL 2 Web Ontology Language, Functional-Style syntax.
 -}
 
-module Hazel.Parser.OWL.Functional where
+module Hazel.Parser.OWL.Functional (ontologyDocument) where
 
 import Control.Applicative ( (<|>)
                            , (<$>)
                            , (<*>)
                            )
-import Control.Arrow ( (&&&)
-                     , (>>>)
-                     )
-import Data.Text ( Text
-                 , pack
-                 )
+import Data.Text (Text)
 import Data.Attoparsec.Text
 
 import Hazel.Parser.Utils ((<<))
-import Hazel.Parser.OWL.BCP47 ( LanguageTag
-                              , langTag
-                              )
-import Hazel.Parser.OWL.RFC3987 (iriReference)
+import Hazel.Parser.OWL.BCP47 (langTag)
+import Hazel.Parser.OWL.RFC3987 (iriReference, showIRI)
 import Hazel.Parser.OWL.SPARQL ( blankNodeLabel
                                , pnameNS
                                , pnameLN
                                )
+import Hazel.Parser.OWL.AST
 
 isWhiteSpace :: Char -> Bool
-isWhiteSpace = inClass " \t\r\n"
+isWhiteSpace ' ' = True
+isWhiteSpace '\t' = True
+isWhiteSpace '\r' = True
+isWhiteSpace '\n' = True
+isWhiteSpace _ = False
 
 isWhiteSpaceOrStartOfComment :: Char -> Bool
-isWhiteSpaceOrStartOfComment = isWhiteSpace &&& ('#'==) >>> uncurry (||)
+isWhiteSpaceOrStartOfComment '#' = True
+isWhiteSpaceOrStartOfComment c = isWhiteSpace c
 
 whitespace :: Parser ()
 whitespace = skipWhile isWhiteSpace
 
+isEOL :: Char -> Bool
+isEOL '\r' = True
+isEOL '\n' = True
+isEOL _ = False
+
 comment :: Parser ()
-comment = "#" .*> skipWhile (not . inClass "\r\n")
+comment = "#" .*> skipWhile (not . isEOL)
 
 isDelimiter :: Char -> Bool
-isDelimiter = inClass "=()<>@^"
+isDelimiter '=' = True
+isDelimiter '(' = True
+isDelimiter ')' = True
+isDelimiter '<' = True
+isDelimiter '>' = True
+isDelimiter '@' = True
+isDelimiter '^' = True
+isDelimiter _ = False
 
 skipSpaceOrComment :: Parser ()
 skipSpaceOrComment = do
   whitespace
-  option () comment
-  mChar <- peekChar
-  case isWhiteSpaceOrStartOfComment <$> mChar of
-    Just True -> skipSpaceOrComment
+  c <- peekChar'
+  case c of
+    '#' -> comment >> skipSpaceOrComment
     _ -> return ()
 
 skipOrDelimiter :: Parser ()
@@ -64,14 +74,14 @@ skipOrDelimiter = do
   mChar <- peekChar
   case isDelimiter <$> mChar of
     Just False -> mustSkip -- not a delimiter, skip whitespace/comments
-    Just True -> skipSpaceOrComment -- at delimiter, skip if necessary
-    Nothing -> return ()             -- at end of input, don't skip
+    Just True -> return ()  -- at delimiter, nothing to skip here
+    Nothing -> return ()    -- at end of input, don't skip
 
 mustSkip :: Parser ()
 mustSkip = do
-  mChar <- peekChar
-  case isWhiteSpaceOrStartOfComment <$> mChar of
-    Just True -> skipSpaceOrComment
+  c <- peekChar'
+  case isWhiteSpaceOrStartOfComment c of
+    True -> skipSpaceOrComment
     _ -> fail "expected whitespace or start of comment"
   <?> "mustSkip"
 
@@ -81,16 +91,10 @@ mustSkip = do
 (<?.) :: Parser a -> Text -> Parser a
 (<?.) p str = (p << skipSpaceOrComment) <*. str
 
-(.!>) :: Text -> Parser a -> Parser a
-(.!>) str p = str .*> (skipOrDelimiter >> p)
-
-(<!.) :: Parser a -> Text -> Parser a
-(<!.) p str = (p << skipOrDelimiter) <*. str
-
-infixr 4 <?., .?>, <!., .!>
+infixr 4 <?., .?>
 
 bracketed :: Text -> Parser a -> Parser a
-bracketed tag p = tag .!> ("(" .?> p <?. ")") << skipSpaceOrComment
+bracketed tag p = tag .?> ("(" .?> p <?. ")") << skipSpaceOrComment
 
 nonNegativeInteger :: Parser Integer
 nonNegativeInteger = decimal << skipOrDelimiter
@@ -107,11 +111,9 @@ quotedString = "\"" .*> scan False go <*. "\"" << skipOrDelimiter
 languageTag :: Parser LanguageTag
 languageTag = "@" .*> langTag << skipOrDelimiter
 
-type IRI = Text
 fullIRI :: Parser IRI
-fullIRI = pack . show <$> "<" .*> iriReference <*. ">" << skipOrDelimiter
+fullIRI = showIRI <$> "<" .*> iriReference <*. ">" << skipSpaceOrComment
 
-type NodeID = Text
 nodeID :: Parser NodeID
 nodeID = blankNodeLabel << skipOrDelimiter
 
@@ -122,34 +124,20 @@ abbreviatedIRI :: Parser IRI
 abbreviatedIRI = pnameLN << skipOrDelimiter
 
 iri :: Parser IRI
-iri = fullIRI <|> abbreviatedIRI
-
-data OntologyDocument = OntologyDocument [PrefixDeclaration] Ontology
-                      deriving Show
+iri = do
+  c <- peekChar'
+  case c of
+    '<' -> fullIRI
+    _ -> abbreviatedIRI
 
 ontologyDocument :: Parser OntologyDocument
 ontologyDocument = OntologyDocument <$> many' prefixDeclaration
                                     <*> ontology
 
-data PrefixDeclaration = PrefixDeclaration Text Text
-                       deriving Show
-
 prefixDeclaration :: Parser PrefixDeclaration
 prefixDeclaration = bracketed "Prefix" $
                     PrefixDeclaration <$> prefixName
                                       <*> ("=" .?> fullIRI)
-
-data VersionedIRI = VersionedIRI { versionedIRIIRI :: IRI
-                                 , versionedIRIVersion :: Maybe IRI
-                                 }
-                    deriving Show
-
-data Ontology = Ontology { ontologyVersionedIRI :: Maybe VersionedIRI
-                         , ontologyImports :: [IRI]
-                         , ontologyOntologyAnnotations :: [Annotation]
-                         , ontologyAxioms :: [Axiom]
-                         }
-                deriving Show
 
 ontology :: Parser Ontology
 ontology = bracketed "Ontology" $
@@ -164,12 +152,6 @@ ontology = bracketed "Ontology" $
                                               <*> (option Nothing $
                                                    Just <$> iri))
 
-ontologyIRI :: Parser IRI
-ontologyIRI = iri
-
-versionIRI :: Parser IRI
-versionIRI = iri
-
 directlyImportsDocuments :: Parser [Text]
 directlyImportsDocuments = many' $ bracketed "Import" iri
 
@@ -179,15 +161,6 @@ ontologyAnnotations = many' annotation
 axioms :: Parser [Axiom]
 axioms = many' axiom
 
-data Entity = Class IRI
-            | Datatype IRI
-            | ObjectProperty IRI
-            | DataProperty IRI
-            | AnnotationProperty IRI
-            | NamedIndividual IRI
-            deriving Show
-
-type Declaration = ([Annotation], Entity)
 declaration :: Parser Declaration
 declaration = bracketed "Declaration" $ (,) <$> axiomAnnotations
                                             <*> entity
@@ -203,18 +176,9 @@ entity = choice $ map ent [ ("Class", Class)
   where ent :: (Text, Text -> Entity) -> Parser Entity
         ent (tag, ctor)= bracketed tag $ ctor <$> iri
 
-data AnnotationSubject = AnonymousSubject NodeID
-                       | NamedSubject IRI
-                       deriving Show
-
 annotationSubject :: Parser AnnotationSubject
 annotationSubject = AnonymousSubject <$> anonymousIndividual
                     <|> NamedSubject <$> iri
-
-data AnnotationValue = AnonymousValue NodeID
-                     | NamedValue IRI
-                     | LiteralValue Literal
-                     deriving Show
 
 annotationValue :: Parser AnnotationValue
 annotationValue = AnonymousValue <$> anonymousIndividual
@@ -223,9 +187,6 @@ annotationValue = AnonymousValue <$> anonymousIndividual
 
 axiomAnnotations :: Parser [Annotation]
 axiomAnnotations = many' annotation
-
-data Annotation = Annotation [Annotation] IRI AnnotationValue
-                  deriving Show
 
 annotation :: Parser Annotation
 annotation = bracketed "Annotation" $
@@ -236,39 +197,36 @@ annotation = bracketed "Annotation" $
 annotationAnnotations :: Parser [Annotation]
 annotationAnnotations = many' annotation
 
-data AnnotationAxiom = AnnotationAssertion [Annotation] IRI AnnotationSubject AnnotationValue
-                     | SubAnnotationPropertyOf [Annotation] IRI IRI
-                     | AnnotationPropertyDomain [Annotation] IRI IRI
-                     | AnnotationPropertyRange [Annotation] IRI IRI
-                     deriving Show
-
 annotationAxiom :: Parser AnnotationAxiom
 annotationAxiom = annotationAssertion
                   <|> subAnnotationPropertyOf
                   <|> annotationPropertyDomain
                   <|> annotationPropertyRange
 
-annotationAxiom' :: Text -> ([Annotation] -> IRI -> a -> AnnotationAxiom) -> Parser a -> Parser AnnotationAxiom
+annotationAxiom' :: Text -> ([Annotation] -> AnnotationProperty -> a -> AnnotationAxiom) -> Parser a -> Parser AnnotationAxiom
 annotationAxiom' tag ctor p = bracketed tag $
                               ctor <$> annotationAnnotations
-                                   <*> iri
+                                   <*> annotationProperty
                                    <*> p
 
 annotationAssertion :: Parser AnnotationAxiom
 annotationAssertion = bracketed "AnnotationAssertion" $
                       AnnotationAssertion <$> axiomAnnotations
-                                          <*> iri
+                                          <*> annotationProperty
                                           <*> annotationSubject
                                           <*> annotationValue
 
 subAnnotationPropertyOf :: Parser AnnotationAxiom
-subAnnotationPropertyOf = annotationAxiom' "SubAnnotationPropertyOf" SubAnnotationPropertyOf iri
+subAnnotationPropertyOf = bracketed "SubAnnotationPropertyOf" $
+                          SubAnnotationPropertyOf <$> annotationAnnotations
+                                                  <*> subAnnotationProperty
+                                                  <*> superAnnotationProperty
 
-subAnnotationProperty :: Parser IRI
-subAnnotationProperty = iri
+subAnnotationProperty :: Parser SubAnnotationProperty
+subAnnotationProperty = SubAnnotationProperty <$> iri
 
-superAnnotationProperty :: Parser IRI
-superAnnotationProperty = iri
+superAnnotationProperty :: Parser SuperAnnotationProperty
+superAnnotationProperty = SuperAnnotationProperty <$> iri
 
 annotationPropertyDomain :: Parser AnnotationAxiom
 annotationPropertyDomain = annotationAxiom' "AnnotationPropertyDomain" AnnotationPropertyDomain iri
@@ -288,10 +246,9 @@ objectProperty = ObjectProperty <$> iri
 dataProperty :: Parser Entity
 dataProperty = DataProperty <$> iri
 
-annotationProperty :: Parser Entity
-annotationProperty = AnnotationProperty <$> iri
+annotationProperty :: Parser AnnotationProperty
+annotationProperty = AnnotationProperty' <$> iri
 
-type Individual = Either IRI NodeID
 
 individual :: Parser Individual
 individual = Left <$> namedIndividual'
@@ -300,16 +257,8 @@ individual = Left <$> namedIndividual'
 namedIndividual' :: Parser IRI
 namedIndividual' = iri
 
-namedIndividual :: Parser Entity
-namedIndividual = NamedIndividual <$> namedIndividual'
-
 anonymousIndividual :: Parser NodeID
 anonymousIndividual = nodeID
-
-data Literal = TypedLiteral Text IRI
-             | StringLiteralNoLanguage Text
-             | StringLiteralWithLanguage Text LanguageTag
-             deriving Show
 
 literal :: Parser Literal
 literal = typedLiteral
@@ -330,11 +279,6 @@ stringLiteralWithLanguage :: Parser Literal
 stringLiteralWithLanguage = StringLiteralWithLanguage <$> quotedString
                                                       <*> languageTag
 
-data InverseObjectProperty = InverseObjectProperty IRI
-                           deriving Show
-type ObjectProperty = IRI
-type ObjectPropertyExpression = Either ObjectProperty InverseObjectProperty
-
 unObjectProperty :: Entity -> IRI
 unObjectProperty (ObjectProperty i) = i
 unObjectProperty _ = error "Entity is not an ObjectProperty"
@@ -347,8 +291,6 @@ inverseObjectProperty :: Parser InverseObjectProperty
 inverseObjectProperty = InverseObjectProperty . unObjectProperty <$>
                         bracketed "ObjectInverseOf" objectProperty
 
-type DataProperty = IRI
-
 unDataProperty :: Entity -> IRI
 unDataProperty (DataProperty i) = i
 unDataProperty _ = error "Entity is not a DataProperty"
@@ -356,26 +298,9 @@ unDataProperty _ = error "Entity is not a DataProperty"
 dataPropertyExpression :: Parser DataProperty
 dataPropertyExpression = unDataProperty <$> dataProperty
 
-type DataType = IRI
-type ConstrainingFacet = IRI
-type RestrictionValue = Literal
-
 unDatatype :: Entity -> DataType
 unDatatype (Datatype i) = i
 unDatatype _ = error "Entity is not a Datatype"
-
--- While technically some components could be collapsed into the
--- lists following them, this would loosen the invariant that a certain
--- number of arguments are present. Hence, we keep the explicit, yet verbose
--- form used in the OWL 2 functional-style grammar.
-data DataRange = DataType DataType
-               | DataIntersectionOf DataRange DataRange [DataRange]
-               | DataUnionOf DataRange DataRange [DataRange]
-               | DataComplementOf DataRange
-               | DataOneOf Literal [Literal]
-               | DataTypeRestriction DataType ConstrainingFacet RestrictionValue
-                 [(ConstrainingFacet, RestrictionValue)]
-               deriving Show
 
 dataRange :: Parser DataRange
 dataRange = dataType
@@ -419,27 +344,6 @@ dataTypeRestriction = bracketed "DatatypeRestriction" $
   where restriction = (,) <$> iri
                           <*> literal
 
-data ClassExpression = Class' IRI
-                     | ObjectIntersectionOf ClassExpression ClassExpression [ClassExpression]
-                     | ObjectUnionOf ClassExpression ClassExpression [ClassExpression]
-                     | ObjectComplementOf ClassExpression
-                     | ObjectOneOf Individual [Individual]
-                     | ObjectSomeValuesFrom ObjectPropertyExpression ClassExpression
-                     | ObjectAllValuesFrom ObjectPropertyExpression ClassExpression
-                     | ObjectHasValue ObjectPropertyExpression Individual
-                     | ObjectHasSelf ObjectPropertyExpression
-                     | ObjectMinCardinality Integer ObjectPropertyExpression (Maybe ClassExpression)
-                     | ObjectMaxCardinality Integer ObjectPropertyExpression (Maybe ClassExpression)
-                     | ObjectExactCardinality Integer ObjectPropertyExpression (Maybe ClassExpression)
-                     | DataSomeValuesFrom DataProperty [DataProperty] DataRange
-                     | DataAllValuesFrom DataProperty [DataProperty] DataRange
-                     | DataHasValue DataProperty Literal
-                     | DataMinCardinality Integer DataProperty (Maybe DataRange)
-                     | DataMaxCardinality Integer DataProperty (Maybe DataRange)
-                     | DataExactCardinality Integer DataProperty (Maybe DataRange)
-                     deriving Show
-
-type Class = IRI
 unClass :: Entity -> Class
 unClass (Class i) = i
 unClass _ = error "Entity is not a class"
@@ -540,11 +444,11 @@ dataHasValue = bracketed "DataHasValue" $
                             <*> literal
 
 dataCardinality' :: Text
-                      -> (Integer
-                          -> DataProperty
-                          -> Maybe DataRange
-                          -> ClassExpression)
-                      -> Parser ClassExpression
+                    -> (Integer
+                        -> DataProperty
+                        -> Maybe DataRange
+                        -> ClassExpression)
+                    -> Parser ClassExpression
 dataCardinality' tag ctor = cardinality' tag ctor
                             dataPropertyExpression dataRange
 
@@ -559,49 +463,32 @@ dataExactCardinality = dataCardinality' "DataExactCardinality"
                        DataExactCardinality
 
 classExpression :: Parser ClassExpression
-classExpression = class''
-                  <|> objectIntersectionOf
-                  <|> objectUnionOf
-                  <|> objectComplementOf
-                  <|> objectOneOf
-                  <|> objectSomeValuesFrom
-                  <|> objectAllValuesFrom
-                  <|> objectHasValue
-                  <|> objectHasSelf
-                  <|> objectMinCardinality
-                  <|> objectMaxCardinality
-                  <|> objectExactCardinality
-                  <|> dataSomeValuesFrom
-                  <|> dataAllValuesFrom
-                  <|> dataHasValue
-                  <|> dataMinCardinality
-                  <|> dataMaxCardinality
-                  <|> dataExactCardinality
-
-data Axiom = AxiomDeclaration Declaration
-           | AxiomClass ClassAxiom
-           | AxiomObjectProperty ObjectPropertyAxiom
-           | AxiomDataProperty DataPropertyAxiom
-           | AxiomDatatype DatatypeDefinition
-           | AxiomHasKey HasKey
-           | AxiomAssertion Assertion
-           | AxiomAnnotation AnnotationAxiom
-           deriving Show
-
-data ClassAxiom = SubClassOf [Annotation] SubClassExpression SuperClassExpression
-                | EquivalentClasses [Annotation] ClassExpression ClassExpression [ClassExpression]
-                | DisjointClasses [Annotation] ClassExpression ClassExpression [ClassExpression]
-                | DisjointUnion [Annotation] Class DisjointClassExpressions
-                deriving Show
-
-data SubClassExpression = SubClassExpression ClassExpression
-                          deriving Show
+classExpression = do
+  c <- peekChar'
+  case c of
+    'O' -> objectIntersectionOf
+           <|> objectUnionOf
+           <|> objectComplementOf
+           <|> objectOneOf
+           <|> objectSomeValuesFrom
+           <|> objectAllValuesFrom
+           <|> objectHasValue
+           <|> objectHasSelf
+           <|> objectMinCardinality
+           <|> objectMaxCardinality
+           <|> objectExactCardinality
+           <|> class''
+    'D' -> dataSomeValuesFrom
+           <|> dataAllValuesFrom
+           <|> dataHasValue
+           <|> dataMinCardinality
+           <|> dataMaxCardinality
+           <|> dataExactCardinality
+           <|> class''
+    _ -> class''
 
 subClassExpression :: Parser SubClassExpression
 subClassExpression = SubClassExpression <$> classExpression
-
-data SuperClassExpression = SuperClassExpression ClassExpression
-                            deriving Show
 
 superClassExpression :: Parser SuperClassExpression
 superClassExpression = SuperClassExpression <$> classExpression
@@ -626,9 +513,6 @@ disjointClasses = bracketed "DisjointClasses" $
                                   <*> classExpression
                                   <*> many' classExpression
 
-data DisjointClassExpressions = DisjointClassExpressions ClassExpression ClassExpression [ClassExpression]
-                              deriving Show
-
 disjointClassExprressions :: Parser DisjointClassExpressions
 disjointClassExprressions = DisjointClassExpressions <$> classExpression
                                                      <*> classExpression
@@ -646,36 +530,12 @@ classAxiom = subClassOf
              <|> disjointClasses
              <|> disjointUnion
 
-data ObjectPropertyAxiom = SubObjectPropertyOf [Annotation] SubObjectPropertyExpression SuperObjectPropertyExpression
-                         | EquivalentObjectProperties [Annotation] ObjectPropertyExpression ObjectPropertyExpression [ObjectPropertyExpression]
-                         | DisjointObjectProperties [Annotation] ObjectPropertyExpression ObjectPropertyExpression [ObjectPropertyExpression]
-                         | InverseObjectProperties [Annotation] ObjectPropertyExpression ObjectPropertyExpression
-                         | ObjectPropertyDomain [Annotation] ObjectPropertyExpression ClassExpression
-                         | ObjectPropertyRange [Annotation] ObjectPropertyExpression ClassExpression
-                         | FunctionalObjectProperty [Annotation] ObjectPropertyExpression
-                         | InverseFunctionalObjectProperty [Annotation] ObjectPropertyExpression
-                         | ReflexiveObjectProperty [Annotation] ObjectPropertyExpression
-                         | IrreflexiveObjectProperty [Annotation] ObjectPropertyExpression
-                         | SymmetricObjectProperty [Annotation] ObjectPropertyExpression
-                         | AsymmetricObjectProperty [Annotation] ObjectPropertyExpression
-                         | TransitiveObjectProperty [Annotation] ObjectPropertyExpression
-                         deriving Show
-
-data SubObjectPropertyExpression = SubObjectPropertyExpression ObjectPropertyExpression                                 | SubObjectPropertyExpressionChain PropertyExpressionChain
-                                 deriving Show
-
 subObjectPropertyExpression :: Parser SubObjectPropertyExpression
 subObjectPropertyExpression = SubObjectPropertyExpression <$> objectPropertyExpression
                               <|> SubObjectPropertyExpressionChain <$> propertyExpressionChain
 
-data SuperObjectPropertyExpression = SuperObjectPropertyExpression ObjectPropertyExpression
-                                   deriving Show
-
 superObjectPropertyExpression :: Parser SuperObjectPropertyExpression
 superObjectPropertyExpression = SuperObjectPropertyExpression <$> objectPropertyExpression
-
-data PropertyExpressionChain = PropertyExpressionChain ObjectPropertyExpression ObjectPropertyExpression [ObjectPropertyExpression]
-                             deriving Show
 
 propertyExpressionChain :: Parser PropertyExpressionChain
 propertyExpressionChain = bracketed "ObjectPropertyChain" $
@@ -690,13 +550,13 @@ subObjectPropertyOf = bracketed "SubObjectPropertyOf" $
                                           <*> superObjectPropertyExpression
 
 properties' :: Text
-                     -> ([Annotation]
-                         -> a
-                         -> a
-                         -> [a]
-                         -> b)
-                     -> Parser a
-                     -> Parser b
+               -> ([Annotation]
+                   -> a
+                   -> a
+                   -> [a]
+                   -> b)
+               -> Parser a
+               -> Parser b
 properties' tag ctor p = bracketed tag $
                          ctor <$> axiomAnnotations
                               <*> p
@@ -784,22 +644,8 @@ objectPropertyAxiom = subObjectPropertyOf
                       <|> asymmetricObjectProperty
                       <|> transitiveObjectProperty
 
-data DataPropertyAxiom = SubDataPropertyOf [Annotation] SubDataPropertyExpression SuperDataPropertyExpression
-                       | EquivalentDataProperties [Annotation] DataProperty DataProperty [DataProperty]
-                       | DisjointDataProperties [Annotation] DataProperty DataProperty [DataProperty]
-                       | DataPropertyDomain [Annotation] DataProperty ClassExpression
-                       | DataPropertyRange [Annotation] DataProperty DataRange
-                       | FunctionalDataProperty [Annotation] DataProperty
-                       deriving Show
-
-data SubDataPropertyExpression = SubDataPropertyExpression DataProperty
-                               deriving Show
-
 subDataPropertyExpression :: Parser SubDataPropertyExpression
 subDataPropertyExpression = SubDataPropertyExpression <$> dataPropertyExpression
-
-data SuperDataPropertyExpression = SuperDataPropertyExpression DataProperty
-                                 deriving Show
 
 superDataPropertyExpression :: Parser SuperDataPropertyExpression
 superDataPropertyExpression = SuperDataPropertyExpression <$> dataPropertyExpression
@@ -845,17 +691,11 @@ dataPropertyAxiom = subDataPropertyOf
                     <|> dataPropertyRange
                     <|> functionalDataProperty
 
-data DatatypeDefinition = DatatypeDefinition [Annotation] DataType DataRange
-                        deriving Show
-
 datatypeDefinition :: Parser DatatypeDefinition
 datatypeDefinition = bracketed "DatatypeDefinition" $
                      DatatypeDefinition <$> axiomAnnotations
                                         <*> iri
                                         <*> dataRange
-
-data HasKey = HasKey [Annotation] ClassExpression [ObjectPropertyExpression] [DataProperty]
-            deriving Show
 
 hasKey :: Parser HasKey
 hasKey = bracketed "HasKey" $
@@ -864,28 +704,11 @@ hasKey = bracketed "HasKey" $
                 <*> ("(" .?> many' objectPropertyExpression <?. ")")
                 <*> ("(" .?> many' dataPropertyExpression <?. ")")
 
-data Assertion = SameIndividual [Annotation] Individual Individual [Individual]
-               | DifferentIndividuals [Annotation] Individual Individual [Individual]
-               | ClassAssertion [Annotation] ClassExpression Individual
-               | ObjectPropertyAssertion [Annotation] ObjectPropertyExpression SourceIndividual TargetIndividual
-               | NegativeObjectPropertyAssertion [Annotation] ObjectPropertyExpression SourceIndividual TargetIndividual
-               | DataPropertyAssertion [Annotation] DataProperty SourceIndividual TargetValue
-               | NegativeDataPropertyAssertion [Annotation] DataProperty SourceIndividual TargetValue
-               deriving Show
-
-data SourceIndividual = SourceIndividual Individual
-                      deriving Show
-
 sourceIndividual :: Parser SourceIndividual
 sourceIndividual = SourceIndividual <$> individual
 
-data TargetIndividual = TargetIndividual Individual
-                      deriving Show
-
 targetIndividual :: Parser TargetIndividual
 targetIndividual = TargetIndividual <$> individual
-
-type TargetValue = Literal
 
 targetValue :: Parser TargetValue
 targetValue = literal

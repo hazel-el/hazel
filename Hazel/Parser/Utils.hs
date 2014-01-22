@@ -25,7 +25,8 @@ import Data.Attoparsec.Text
 -- | Apply the given action between @from@ and @to@ times, returning every result.
 countFromTo :: (Alternative m, Monad m) => Int -> Int -> m a -> m [a]
 countFromTo from to action
-  | from <= to = (++) <$> count from action <*> choice [ count n action | n <- [1..(to - from)] ]
+  | from <= to = (++) <$> count from action
+                     <*> choice [ count n action | n <- [1..(to - from)] ]
   | otherwise = error "countFromTo: from > to."
 
 -- | Sequence two actions, returning the first value

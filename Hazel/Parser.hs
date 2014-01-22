@@ -12,13 +12,13 @@ Front-end module for the OWL2 Functional-Style parser
 -}
 module Hazel.Parser ( ontologyDocument
                     , parseFile
+                    , module Hazel.Parser.OWL.AST
                     ) where
 
 import Prelude hiding (catch)
 
-import Hazel.Parser.OWL.Functional ( ontologyDocument
-                                   , OntologyDocument (..)
-                                   )
+import Hazel.Parser.OWL.AST
+import Hazel.Parser.OWL.Functional (ontologyDocument)
 
 import Control.Exception (catch)
 import Data.Conduit ( ($$)

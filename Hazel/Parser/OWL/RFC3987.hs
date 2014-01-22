@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns, OverloadedStrings, ViewPatterns #-}
 
 {- |
 Module      :  Hazel.Parser.OWL.RFC3987
@@ -15,13 +15,16 @@ module Hazel.Parser.OWL.RFC3987 ( IRI (..)
                                 , iri
                                 , iRelativeRef
                                 , iriReference
+                                , showIRI
                                 ) where
 
 import Control.Applicative ( (<|>)
                            , (<$>)
                            , (<*>)
                            )
-import Data.Monoid (mappend)
+import Data.Monoid ( mappend
+                   , (<>)
+                   )
 import Data.Text ( Text
                  , cons
                  , pack
@@ -31,6 +34,7 @@ import Data.Text ( Text
                  )
 import Data.Attoparsec.Text
 import qualified Data.Text as T
+import qualified Data.Attoparsec.Text as AT
 
 import Hazel.Parser.Utils (countFromTo)
 import Hazel.Parser.OWL.RFC5234 ( alpha
@@ -48,77 +52,105 @@ data IRI = AbsoluteIRI { iriScheme :: Text          -- ^ scheme
                        , iriIFragment :: Maybe Text -- ^ ifragment
                        }
 
-queryFragment :: IRI -> [Text]
-queryFragment i = [ maybe "" (cons '?') $ iriIQuery i
-                  , maybe "" (cons '#') $ iriIFragment i
-                  ]
-
+showIRI :: IRI -> Text
+showIRI (AbsoluteIRI ischeme hierPart query fragment) = T.concat [ ischeme
+                                                                 , ":"
+                                                                 , hierPart
+                                                                 , maybe "" (cons '?') query
+                                                                 , maybe "" (cons '#') fragment
+                                                                 ]
+showIRI (RelativeIRI relativePart query fragment) = T.concat [ relativePart
+                                                             , maybe "" (cons '?') query
+                                                             , maybe "" (cons '#') fragment
+                                                             ]
 
 instance Show IRI where
-  show i@(AbsoluteIRI _ _ _ _) = concatMap unpack $ [ iriScheme i
-                                                    , ":"
-                                                    , iriIHierPart i
-                                                    ] ++ (queryFragment i)
-  show i@(RelativeIRI _ _ _) = concatMap unpack $
-                               (iriIRelativePart i):(queryFragment i)
+  show = unpack . showIRI
 
-ucsChar :: Parser Char
-ucsChar = satisfy $ inClass $ concat [ "\xA0-\xD7FF"
-                                     , "\xF900-\xFDCF"
-                                     , "\xFDF0-\xFFEF"
-                                     , "\x10000-\x1FFFD"
-                                     , "\x20000-\x2FFFD"
-                                     , "\x30000-\x3FFFD"
-                                     , "\x40000-\x4FFFD"
-                                     , "\x50000-\x5FFFD"
-                                     , "\x60000-\x6FFFD"
-                                     , "\x70000-\x7FFFD"
-                                     , "\x80000-\x8FFFD"
-                                     , "\x90000-\x9FFFD"
-                                     , "\xA0000-\xAFFFD"
-                                     , "\xB0000-\xBFFFD"
-                                     , "\xC0000-\xCFFFD"
-                                     , "\xD0000-\xDFFFD"
-                                     , "\xE1000-\xEFFFD"
-                                     ]
+isUcsChar :: Char -> Bool
+isUcsChar = inClass $ concat [ "\xA0-\xD7FF"
+                             , "\xF900-\xFDCF"
+                             , "\xFDF0-\xFFEF"
+                             , "\x10000-\x1FFFD"
+                             , "\x20000-\x2FFFD"
+                             , "\x30000-\x3FFFD"
+                             , "\x40000-\x4FFFD"
+                             , "\x50000-\x5FFFD"
+                             , "\x60000-\x6FFFD"
+                             , "\x70000-\x7FFFD"
+                             , "\x80000-\x8FFFD"
+                             , "\x90000-\x9FFFD"
+                             , "\xA0000-\xAFFFD"
+                             , "\xB0000-\xBFFFD"
+                             , "\xC0000-\xCFFFD"
+                             , "\xD0000-\xDFFFD"
+                             , "\xE1000-\xEFFFD"
+                             ]
 
 pctEncoded :: Parser Text
 pctEncoded = pack <$> ((:) <$> char '%' <*> count 2 hexDig)
 
-subDelims :: Parser Char
-subDelims = satisfy $ inClass "!$&'()*+,;="
+isSubDelim :: Char -> Bool
+isSubDelim '!' = True
+isSubDelim '$' = True
+isSubDelim '&' = True
+isSubDelim '\'' = True
+isSubDelim '(' = True
+isSubDelim ')' = True
+isSubDelim '*' = True
+isSubDelim '+' = True
+isSubDelim ',' = True
+isSubDelim ';' = True
+isSubDelim '=' = True
+isSubDelim _ = False
 
-iPrivate :: Parser Char
-iPrivate = satisfy $ inClass $ concat [ "\xE000-\xF8FF"
-                                      , "\xF0000-\xFFFFD"
-                                      , "\x100000-\x10FFFD"
-                                      ]
+subDelims :: Parser Char
+subDelims = satisfy isSubDelim
+
+isIPrivate :: Char -> Bool
+isIPrivate c = ('\xE000' <= c && c <= '\xF8FF')
+               || ('\xF0000' <= c && c <= '\xFFFFD')
+               || ('\x100000' <= c && c <= '\x10FFFD')
 
 unreserved :: Parser Char
 unreserved = alpha
              <|> digit
              <|> satisfy (inClass "._~-")
 
-iUnreserved :: Parser Char
-iUnreserved = alpha
-              <|> digit
-              <|> satisfy (inClass "._~-")
-              <|> ucsChar
+isIUnreserved :: Char -> Bool
+isIUnreserved c = ('a' <= c && c <= 'z')
+                  || ('A' <= c && c <= 'Z')
+                  || ('0' <= c && c <= '9')
+                  || isOther c
+  where isOther '.' = True
+        isOther '_' = True
+        isOther '~' = True
+        isOther '-' = True
+        isOther d = isUcsChar d
+        {-# INLINE isOther #-}
 
-ipChar :: Parser Text
-ipChar = singleton <$> iUnreserved
-         <|> pctEncoded
-         <|> singleton <$> subDelims
-         <|> singleton <$> satisfy (inClass ":@")
+isIpChar' :: Char -> Bool
+isIpChar' c = isIUnreserved c
+              || isSubDelim c
+              || c == ':'
+              || c == '@'
 
 scheme :: Parser Text
-scheme = pack <$> ((:) <$> alpha <*> many' (alpha <|> digit <|> satisfy (inClass "+.-")))
+scheme = cons <$> alpha
+              <*> AT.takeWhile isChr
+              <?> "scheme"
+  where isChr c = ('a' <= c && c <= 'z')
+                  || ('A' <= c && c <= 'Z')
+                  || ('0' <= c && c <= '9')
+                  || c == '+'
+                  || c == '.'
+                  || c == '-'
+        {-# INLINE isChr #-}
 
 iUserInfo :: Parser Text
-iUserInfo = T.concat <$> many' (singleton <$> iUnreserved
-                                <|> pctEncoded
-                                <|> singleton <$> subDelims
-                                <|> singleton <$> satisfy (inClass ":"))
+iUserInfo = iSegment' isChr
+  where isChr c = c == ':' || isSubDelim c || isIUnreserved c
+        {-# INLINE isChr #-}
 
 port :: Parser Text
 port = pack <$> many' digit
@@ -129,9 +161,9 @@ ipLiteral = cons <$> char '['
                            <*> char ']')
 
 iRegName :: Parser Text
-iRegName = T.concat <$> many' (singleton <$> iUnreserved
-                               <|> pctEncoded
-                               <|> singleton <$> subDelims)
+iRegName = iSegment' isChr
+  where isChr c = isSubDelim c || isIUnreserved c
+        {-# INLINE isChr #-}
 
 decOctet :: Parser Text
 decOctet = singleton <$> digit
@@ -195,21 +227,55 @@ iAuthority = mappend <$> option "" (snoc <$> iUserInfo <*> char '@')
                      <*> (mappend <$> iHost
                                   <*> option "" (cons <$> char ':' <*> port))
 
+
+iSegment' :: (Char -> Bool) -> Parser Text
+iSegment' predicate = do
+  prefix <- AT.takeWhile predicate
+  c <- peekChar'
+  case c of
+    '%' -> do
+      pct <- pctEncoded
+      let !prefix' = prefix <> pct
+      rest <- iSegment
+      return $! prefix' <> rest
+    _ -> return $! prefix
+
+iSegment1' :: (Char -> Bool) -> Parser Text
+iSegment1' predicate = do
+  c <- peekChar'
+  prefix <- case c of
+    '%' -> pctEncoded
+    (predicate -> True) -> AT.take 1
+    _ -> fail "iSegment1'"
+  rest <- iSegment' predicate
+  return $! prefix <> rest
+
 iSegment :: Parser Text
-iSegment = T.concat <$> many' ipChar
+iSegment = iSegment' isIpChar'
 
 iSegmentNz :: Parser Text
-iSegmentNz = T.concat <$> many1 ipChar
+iSegmentNz = iSegment1' isIpChar'
 
 iSegmentNzNc :: Parser Text
-iSegmentNzNc = T.concat <$> many' (T.singleton <$> iUnreserved
-                                   <|> pctEncoded
-                                   <|> singleton <$> subDelims
-                                   <|> singleton <$> char '@')
+iSegmentNzNc = iSegment1' isChr
+  where isChr c = c == '@' || isSubDelim c || isIUnreserved c
+        {-# INLINE isChr #-}
 
 iPathAbEmpty :: Parser Text
-iPathAbEmpty = T.concat <$> many' (cons <$> char '/'
-                                        <*> iSegment)
+iPathAbEmpty = do
+  c <- peekChar'
+  case c of
+    '/' -> do
+      slash <- AT.take 1
+      segment <- iSegment
+      let !prefix = slash <> segment
+      d <- peekChar'
+      case d of
+        '/' -> do
+          rest <- iPathAbEmpty
+          return $! prefix <> rest
+        _ -> return $! prefix
+    _ -> return $! ""
 
 iPathAbsolute :: Parser Text
 iPathAbsolute = cons <$> char '/'
@@ -217,32 +283,38 @@ iPathAbsolute = cons <$> char '/'
 
 iPathRootless :: Parser Text
 iPathRootless = mappend <$> iSegmentNz
-                        <*> (T.concat <$> many' (cons <$> char '/'
-                                                      <*> iSegment))
+                        <*> iPathAbEmpty
 
 iPathNoScheme :: Parser Text
 iPathNoScheme = mappend <$> iSegmentNzNc
-                        <*> (T.concat <$> many' (cons <$> char '/'
-                                                      <*> iSegment))
+                        <*> iPathAbEmpty
 
 iPathEmpty :: Parser Text
-iPathEmpty = scan () (\ _ _ -> Nothing)
+iPathEmpty = return $! ""
 
 iHierPart :: Parser Text
-iHierPart = mappend <$> string "//"
-                    <*> (mappend <$> iAuthority
-                                 <*> iPathAbEmpty)
-            <|> iPathAbsolute
-            <|> iPathRootless
-            <|> iPathEmpty
+iHierPart = do
+  c <- peekChar'
+  case c of
+    '/' -> mappend <$> string "//"
+                  <*> (mappend <$> iAuthority
+                               <*> iPathAbEmpty)
+         <|> iPathAbsolute
+    _ -> iPathRootless
+         <|> iPathEmpty
 
 iQuery :: Parser Text
-iQuery = T.concat <$> many' (ipChar
-                                 <|> singleton <$> iPrivate
-                                 <|> singleton <$> satisfy (inClass "/?"))
+iQuery = iSegment' isChr
+  where isChr c = isIpChar' c
+                  || isIPrivate c
+                  || c == '/'
+                  || c == '?'
+        {-# INLINE isChr #-}
 
 iFragment :: Parser Text
-iFragment = T.concat <$> many' (ipChar <|> singleton <$> satisfy (inClass "/?"))
+iFragment = iSegment' isChr
+  where isChr c = c == '/' || c == '?' || isIpChar' c
+        {-# INLINE isChr #-}
 
 iRelativePart :: Parser Text
 iRelativePart = mappend <$> string "//"
