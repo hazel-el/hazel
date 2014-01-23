@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {- |
 Module      :  Hazel.Conversion
 Description :  Converts between parser output and core datastructures
@@ -12,27 +13,24 @@ module Hazel.Conversion ( extractGCIs )
        where
 
 import Hazel.Core 
-import Hazel.Parser.OWL.Functional
-
-import Data.Text (unpack)
+import Hazel.Parser.OWL.AST
 
 
 convertObjectProperty :: ObjectPropertyExpression -> Role
 convertObjectProperty (Left iri)
-    | unpack iri == "owl:bottomObjectProperty"
+    | iri == "owl:bottomObjectProperty"
         = error "owl:bottomObjectProperty not yet supported"
-    | unpack iri == "owl:topObjectProperty"
+    | iri == "owl:topObjectProperty"
         = error "owl:topObjectProperty not yet supported"
     | otherwise = Role iri
 convertObjectProperty (Right _)
     = error "InverseObjectProperty not part of OWL 2 EL specs"
 
 convertClass :: ClassExpression -> Concept
-convertClass (Class' iri)
-    | unpack iri == "owl:Thing"   = Top
-    | unpack iri == "owl:Nothing" = error "owl:Nothing not yet supported"
-    | otherwise                   = Name iri
-convertClass c = case c of
+convertClass cls = case cls of
+    Class' "owl:Thing"          -> Top
+    Class' "owl:Nothing"        -> error "owl:Nothing not yet supported"
+    Class' iri                  -> Name iri
     ObjectIntersectionOf c d cs -> foldr (And . convertClass) (c' `And` d') cs
         where c' = convertClass c
               d' = convertClass d
