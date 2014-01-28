@@ -13,3 +13,38 @@ To Do
 	* Datenstruktur diskutieren mit jemandem, der sich damit auskennt
 - Polymorphie einführen (Konzept wird eine Klasse, ELKonzept, OWL2ELKonzept,
   ALCKonzept, etc. werden Instanzen)
+
+Bisherige Arbeit
+================
+Jeder testet und mergt seine neueste Arbeit:
+  * Max: Parser
+  * Francesco: transitive Reduktion
+  * Felix: Wrapper (+ ggf. optimierte Completion nach Benchmarking)
+
+Ausgabe (Francesco fängt an)
+=======
+- Gerüst eines OWL 2 Dokuments
+- Graphstruktur als SubClassOf und EquivalentClasses Axiome
+
+weitere Konstrukte/Axiome
+=========================
+- from Suntisrivaraporn (Felix fängt an)
+  * bottom + disjointness
+  * domain + range restriction
+  * reflexivity + transitivity
+  * role inclusion + hierarchy
+- from Pushing the EL envelope (further)
+  * nominals
+- other constructs occurring in live competition
+  * datatypes
+  * universal role
+  * negative role assertions
+- not occurring
+  * empty role
+  * self restrictions
+  * negative 'feature' assertions
+  * has key
+
+weitere Aufgaben:
+=================
+- Max: Statistiken zur Nutzung der "bösen" Konstrukte
