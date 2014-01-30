@@ -3,7 +3,7 @@ module Main (main) where
 import System.Directory (doesFileExist)
 import System.Environment (getArgs)
 
-import Data.Set (elemAt)
+import Data.Set (toList)
 
 import Hazel.Parser (parseFile)
 import Hazel.Conversion (extractGCIs)
@@ -18,8 +18,9 @@ parse file = do
   result <- parseFile file
   case result of
     (Left err) -> putStrLn $ "failed parsing `" ++ file ++ "': `" ++ err ++ "'."
-    (Right o) -> print $ getNodes cg $ elemAt 1 names
+    (Right o) -> print $ zip ns $ map (getNodes cg) ns
       where
+        ns = toList names
         t = normalize $ extractGCIs o
         TBox _ names _ = t
         cg = complete t
