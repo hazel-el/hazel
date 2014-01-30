@@ -65,13 +65,14 @@ addGCI a gcis = case a of
                                             -- assertions
     AxiomClass (SubClassOf _  (SubClassExpression c) (SuperClassExpression d))
                                    -> Subclass c' d' : gcis
-        where c' = convertClass c
-              d' = convertClass d
-    AxiomClass (EquivalentClasses _  c d [])
-                                   -> Subclass c' d' : Subclass d' c' : gcis
-        where c' = convertClass c
-              d' = convertClass d
-    AxiomClass EquivalentClasses{} -> notSupported "more than 2 classes in equivalence "
+      where c' = convertClass c
+            d' = convertClass d
+    AxiomClass (EquivalentClasses _  c d cs)
+        -> concat (zipWith go (c : d : cs) (d : cs ++ [c])) ++ gcis
+      where
+        go c1 c2 = [Subclass c1' c2', Subclass c2' c1']
+          where c1' = convertClass c1
+                c2' = convertClass c2
     AxiomClass DisjointClasses{}   -> notSupported "DisjointClasses"
     AxiomClass DisjointUnion{}     -> notEL "DisjointUnion"
     AxiomObjectProperty _          -> notSupported "AxiomObjectProperty"
