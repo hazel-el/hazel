@@ -13,7 +13,7 @@ library
   ghc-options:       -Wall -Werror -O2
   ghc-prof-options:  -auto-all -caf-all
   exposed-modules:     Hazel.Completion
-                     , Hazel.Conversion
+                     , Hazel.Wrapper
                      , Hazel.Core
                      , Hazel.Normalize
                      , Hazel.Parser
