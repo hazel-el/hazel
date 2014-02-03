@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-Module      :  Hazel.Conversion
+Module      :  Hazel.Wrapper
 Description :  Converts between parser output and core datastructures
 License     :  GPL-3
 Stability   :  experimental
@@ -9,7 +9,7 @@ Portability :  unknown
 Hazel conversion
 -}
 
-module Hazel.Conversion ( extractGCIs )
+module Hazel.Wrapper ( extractGCIs )
        where
 
 import Hazel.Core 
