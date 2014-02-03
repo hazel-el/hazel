@@ -13,16 +13,16 @@ module Hazel.Wrapper ( extractGCIs )
        where
 
 import Hazel.Core 
-import Hazel.Parser.OWL.AST
+import Hazel.Parser.OWL.Functional
 
 
 convertObjectProperty :: ObjectPropertyExpression -> Role
-convertObjectProperty (Left iri)
-    | iri == "owl:bottomObjectProperty"
+convertObjectProperty (Left i)
+    | i == "owl:bottomObjectProperty"
         = error "owl:bottomObjectProperty not yet supported"
-    | iri == "owl:topObjectProperty"
+    | i == "owl:topObjectProperty"
         = error "owl:topObjectProperty not yet supported"
-    | otherwise = Role iri
+    | otherwise = Role i
 convertObjectProperty (Right _)
     = error "InverseObjectProperty not part of OWL 2 EL specs"
 
@@ -30,7 +30,7 @@ convertClass :: ClassExpression -> Concept
 convertClass cls = case cls of
     Class' "owl:Thing"          -> Top
     Class' "owl:Nothing"        -> error "owl:Nothing not yet supported"
-    Class' iri                  -> Name iri
+    Class' i                    -> Name i
     ObjectIntersectionOf c d cs -> foldr (And . convertClass) (c' `And` d') cs
         where c' = convertClass c
               d' = convertClass d
