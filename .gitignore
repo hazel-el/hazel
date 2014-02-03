@@ -9,3 +9,9 @@ dist_*/
 *.hp
 *.prof
 *.ps
+*.bbl
+*.hi
+*.o
+*.swp
+*.log
+*.blg
