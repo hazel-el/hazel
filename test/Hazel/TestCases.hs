@@ -166,10 +166,10 @@ r = Role "r"
 
 exercise38 :: [GCI]
 exercise38 =
-    [ Subclass a $ b `And` Exists r c
-    , Subclass (b `And` Exists r b) (c `And` d)
+    [ Subclass a $ Exists r c `And` b
     , Subclass c $ Exists r a `And` b
-    , Subclass (Exists r (Exists r b) `And` d) $ Exists r $ And a b
+    , Subclass (Exists r (Exists r b) `And` d) $ Exists r $ And b a
+    , Subclass (Exists r b `And` b) (d `And` c)
     ]
 
 normalized38 :: TBox
