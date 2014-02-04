@@ -5,8 +5,15 @@ module Hazel.CompletionSpec (spec)
 
 import Data.List (intersect)
 import Data.Set (fromList)
+import Data.HashMap.Strict ( empty
+                           , null
+                           , lookup
+                           )
 
-import Prelude hiding (succ)
+import Prelude hiding ( succ
+                      , null
+                      , lookup
+                      )
 import Control.Monad.State.Lazy ( runState
                                 , evalState
                                 )
@@ -18,7 +25,7 @@ import Hazel.Completion
 import Hazel.TestCases
 
 iS :: CState
-iS = CState [] []
+iS = CState empty False
 
 spec :: Spec
 spec = do
@@ -52,9 +59,9 @@ spec = do
       it "should find Dummy and Top" $
         n (Name "Dummy") `shouldBe` [Name "Dummy"]
     describe "CR3" $ do
-      let (CGraph _ n, CState _ rs) = flip runState iS $ cr3 cr3Gci iG name
+      let (CGraph _ n, CState _ rc) = flip runState iS $ cr3 cr3Gci iG name
       it "should find a new role pair" $
-        null rs `shouldBe` False
+        rc `shouldBe` True
       it "should find (Person, Person)" $
         n role `shouldBe` [(name, name)]
       it "should not find any pairs" $
@@ -79,8 +86,12 @@ spec = do
       it "Subsumees of D should be A, C, D" $
         fromList (getNodes cg38 d `intersect` [a, b, c, d]) `shouldBe` fromList [a, c, d]
     describe "Top Test" $ do
-      let compTop = iterateGCI (initGraph [a, b]) topTest
+      let compTop = iterateGCI True empty (initGraph [a, b]) topTest
           (_, CState cnodes _) = runState compTop emptyState
-      it "all nodes including top should have changed" $
-          fromList cnodes `shouldBe` fromList [a, b, Top]
+      it "B and Top should have received the label A" $
+          lookup a cnodes `shouldBe` Just [b, Top]
+      it "A and Top should have received the label B" $
+          lookup b cnodes `shouldBe` Just [a, Top]
+      it "Obviously no new nodes are labeled Top" $
+          lookup Top cnodes `shouldBe` Nothing
   where iG = initGraph allNodes
