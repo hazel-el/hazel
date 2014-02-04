@@ -11,10 +11,21 @@ Completion Algorithm for EL
 module Hazel.Completion
        where
 
+import Prelude hiding ( null )
+
 import Control.Monad.State.Lazy
-import Data.List
+import Data.List ( intersect
+                 , nub
+                 )
 import Data.Set (elems)
 import Hazel.Core
+import Data.HashMap.Strict ( HashMap
+                           , empty
+                           , lookupDefault
+                           , null
+                           , singleton
+                           , union
+                           )
 
 
 -- data structure for completion graph
@@ -42,8 +53,9 @@ data CNeighbors = CNeighbors { getUpper :: Concept -> [Concept]
 type Node = Concept
 type CEdge = (Concept, Concept)
 
-data CState = CState [Node] [CEdge]
-              deriving (Eq)
+data CState = CState { newNodes :: HashMap Concept [Node]
+                     , roleChange :: Bool
+                     }
 type Completion = State CState CGraph
 
 
@@ -78,14 +90,15 @@ cr2 :: GCI -> CGraph -> Concept -> Completion
 cr3 :: GCI -> CGraph -> Concept -> Completion
 cr4 :: GCI -> CGraph -> (Concept, Concept) -> Completion
 
-changeNode :: Node -> State CState ()
-changeNode node = do
-    CState ns es <- get
-    put $ CState (node:ns) es
+addLabel :: Node -> Concept -> State CState ()
+addLabel node c = do
+    CState nn rc <- get
+    let oldNodes = lookupDefault [] c nn
+    put $ CState (singleton c (node:oldNodes) `union` nn) rc
 
 cr1 (Subclass c' d) (CGraph n r) c
     | (c `notElem` n d) && (c `elem` n c') = do
-        changeNode c
+        addLabel c d
         return $ CGraph n' r
     | otherwise = return $ CGraph n r
   where
@@ -93,7 +106,7 @@ cr1 (Subclass c' d) (CGraph n r) c
 
 cr2 (Subclass (And c1 c2) d) (CGraph n r) c
     | (c `elem` n c1) && (c `elem` n c2) && (c `notElem` n d) = do
-        changeNode c
+        addLabel c d
         return $ CGraph n' r
     | otherwise = return $ CGraph n r
   where
@@ -102,8 +115,8 @@ cr2 _ _ _ = error "Application of Rule CR2 not possible"
 
 cr3 (Subclass c' (Exists role d)) (CGraph n r) c
     | (c `elem` n c') && ((c, d) `notElem` r role) = do
-        CState ns es <- get
-        put $ CState ns ((c, d):es)
+        CState nn _ <- get
+        put $ CState nn True
         return $ CGraph n r'
     | otherwise = return $ CGraph n r
   where
@@ -112,7 +125,7 @@ cr3 _ _ _ = error "Application of Rule CR3 not possible"
 
 cr4 (Subclass (Exists role d') e) (CGraph n r) (c, d)
     | ((c, d) `elem` r role) && (d `elem` n d') && (c `notElem` n e) = do
-        changeNode c
+        addLabel c e
         return $ CGraph n' r
     | otherwise = return $ CGraph n r
   where
@@ -123,25 +136,34 @@ cr4 _ _ _ = error "Application of Rule CR4 not possible"
 -- Functions ensuring the rules are applied exhaustively
 
 emptyState :: CState
-emptyState = CState [] []
+emptyState = CState empty False
 
 complete :: TBox -> CGraph
 complete (TBox gcis cs _) =
-    go . initGraph $ elems cs
+    go True empty $ initGraph $ elems cs
   where
-    go :: CGraph -> CGraph
-    go graph
-        | state' == emptyState = graph'
-        | otherwise            = go graph'
+    go :: Bool -> HashMap Concept [Node] -> CGraph -> CGraph
+    go first nn graph
+        | null nn' && not rc' = graph'
+        | otherwise           = go False nn' graph'
       where
-        (graph', state') = runState (iterateGCI graph gcis) emptyState
+        (graph', CState nn' rc') =
+            runState (iterateGCI first nn graph gcis) emptyState
 
-iterateNodes :: CGraph -> GCI -> Completion
-iterateNodes cG@(CGraph n r) gci = case gci of
-    (Subclass (And c d) _)       -> foldM (cr2 gci) cG (n c `intersect` n d)
-    (Subclass c' (Exists _ _))   -> foldM (cr3 gci) cG (n c')
-    (Subclass (Exists role _) _) -> foldM (cr4 gci) cG (r role)
-    (Subclass c' _)              -> foldM (cr1 gci) cG (n c')
+iterateNodes :: Bool -> HashMap Concept [Node] -> CGraph -> GCI -> Completion
+iterateNodes first nn cG@(CGraph n r) gci = case gci of
+    (Subclass (And c d) _)       ->
+        foldM (cr2 gci) cG $ newlyEither c d
+    (Subclass c' (Exists _ _))   -> foldM (cr3 gci) cG $ newly c'
+    (Subclass (Exists role _) _) -> foldM (cr4 gci) cG $ r role
+    (Subclass c' _)              -> foldM (cr1 gci) cG $ newly c'
+  where
+    newly c' | first     = n c'
+             | otherwise = n c' `intersect` lookupDefault [] c' nn
+    newlyEither c d
+             | first     = n c `intersect` n d
+             | otherwise = n c `intersect` n d `intersect`
+                           (lookupDefault [] c nn ++ lookupDefault [] d nn)
 
-iterateGCI :: CGraph -> [GCI] -> Completion
-iterateGCI = foldM iterateNodes
+iterateGCI :: Bool -> HashMap Concept [Node] -> CGraph -> [GCI] -> Completion
+iterateGCI first nn = foldM (iterateNodes first nn)
