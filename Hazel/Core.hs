@@ -19,7 +19,9 @@ module Hazel.Core ( Role (..)
 
 import Control.Arrow ((***))
 import Data.Foldable (foldMap)
-import Data.Hashable (hash)
+import Data.Hashable ( hash
+                     , Hashable
+                     )
 import Data.Monoid ( Monoid (..)
                    , mempty
                    )
@@ -31,17 +33,20 @@ import Data.Set ( Set
 import Data.Text ( Text
                  , unpack
                  )
+import GHC.Generics (Generic)
 
 -- Datatypes
 newtype Role = Role Text
-             deriving (Eq, Ord)
+             deriving (Eq, Ord, Hashable)
 
 data Concept = Top
              | Name Text
              | Dummy Text
              | And Concept Concept
              | Exists Role Concept
-             deriving (Eq, Ord)
+             deriving (Eq, Ord, Generic)
+
+instance Hashable Concept
 
 data GCI = Subclass Concept Concept
            deriving (Eq)
