@@ -23,8 +23,7 @@ import Data.HashMap.Strict ( HashMap
                            , empty
                            , lookupDefault
                            , null
-                           , singleton
-                           , union
+                           , insertWith
                            )
 
 
@@ -93,8 +92,7 @@ cr4 :: GCI -> CGraph -> (Concept, Concept) -> Completion
 addLabel :: Node -> Concept -> State CState ()
 addLabel node c = do
     CState nn rc <- get
-    let oldNodes = lookupDefault [] c nn
-    put $ CState (singleton c (node:oldNodes) `union` nn) rc
+    put $ CState (insertWith (++) c [node] nn) rc
 
 cr1 (Subclass c' d) (CGraph n r) c
     | (c `notElem` n d) && (c `elem` n c') = do
